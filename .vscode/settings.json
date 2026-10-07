@@ -1,0 +1,15 @@
+{
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "C_Cpp.autocomplete": "disabled",
+  "C_Cpp.errorSquiggles": "disabled",
+  "C_Cpp.codeAnalysis.runAutomatically": false,
+  "editor.quickSuggestions": {
+    "comments": "off",
+    "strings": "off",
+    "other": "off"
+  },
+  "editor.suggestOnTriggerCharacters": false,
+  "editor.inlineSuggest.enabled": false,
+  "editor.wordBasedSuggestions": "off",
+  "geminicodeassist.inlineSuggestions.enableAuto": false
+}
