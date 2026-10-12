@@ -33,6 +33,7 @@ int main(){
     const float max_speed = 450.0f;
     const float braking = 300.0f;  // We use const to keep it a fixed value.
     const float drag = 60.0f;  //Drag means the car gradually slows down when we are not pressing anything.
+    const float turn_speed = 120.0f;
     sf::Clock frameClock;   //It is kind of a stopwatch.              / Thing is we use this clock to measure the time from 1 frame to another  /
 
 //Main Game Loop
@@ -51,7 +52,18 @@ int main(){
             speed = std::max(0.0f, speed - braking * deltaTime);
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)){
             speed = std::min(max_speed, speed + acceleration * deltaTime);  // We ise min because we want the maximum speed is 450f.
-        } else {
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+         {
+
+             carsprite.rotate(sf::degrees(-turn_speed * deltaTime));
+         }
+
+         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+        {
+            carsprite.rotate(sf::degrees(turn_speed * deltaTime));
+         }
+         else {
             speed = std::max(0.0f, speed - drag * deltaTime);   //IF neither is pressed, the car speed gradually decreases 
         }                                                       //We use max beacuse we want to stop it not to reverse it
 
