@@ -1,14 +1,20 @@
 {
-  "C_Cpp.intelliSenseEngine": "disabled",
-  "C_Cpp.autocomplete": "disabled",
-  "C_Cpp.errorSquiggles": "disabled",
-  "C_Cpp.codeAnalysis.runAutomatically": false,
+  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.autocomplete": "default",
+  "C_Cpp.errorSquiggles": "enabled",
+  "C_Cpp.codeAnalysis.runAutomatically": true,
+  "C_Cpp.default.compilerPath": "/usr/bin/clang++",
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/include",
+    "/opt/homebrew/opt/sfml/include"
+  ],
   "editor.quickSuggestions": {
     "comments": "off",
     "strings": "off",
-    "other": "off"
+    "other": "on"
   },
-  "editor.suggestOnTriggerCharacters": false,
+  "editor.suggestOnTriggerCharacters": true,
   "editor.inlineSuggest.enabled": false,
   "editor.wordBasedSuggestions": "off",
   "geminicodeassist.inlineSuggestions.enableAuto": false
