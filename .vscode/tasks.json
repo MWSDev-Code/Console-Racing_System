@@ -7,9 +7,12 @@
       "command": "clang++",
       "args": [
         "src/main.cpp",
+        "src/Car.cpp",
+        "src/Game.cpp",
         "-o",
         "game",
         "-std=c++17",
+        "-Iinclude",
         "-I/opt/homebrew/opt/sfml/include",
         "-L/opt/homebrew/opt/sfml/lib",
         "-lsfml-graphics",
