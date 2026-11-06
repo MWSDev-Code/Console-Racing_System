@@ -9,6 +9,9 @@ bool Car::load() {
   if (!carTexture.loadFromFile("assets/cars/Car1.png")) {
     return false;
   }
+  if (!Track_Mask.loadFromFile("assets/track/Track_Mask.png")) {
+    return false;
+  }
 
   carsprite.setTexture(carTexture, true);
   carsprite.setScale({0.12f, 0.12f});
@@ -74,6 +77,23 @@ void Car::update(float deltaTime) {
     float extra = bounds.position.y + bounds.size.y - 720.0f;
 
     carsprite.move({0.0f, -extra});
+  }
+  sf::Vector2f carPosition = carsprite.getPosition();
+
+  sf::Vector2u maskSize = Track_Mask.getSize();
+
+  unsigned int maskX =
+      static_cast<unsigned int>(carPosition.x * maskSize.x / 1280.0f);
+
+  unsigned int maskY =
+      static_cast<unsigned int>(carPosition.y * maskSize.y / 720.0f);
+
+  if (maskX < maskSize.x && maskY < maskSize.y) {
+    sf::Color pixel = Track_Mask.getPixel({maskX, maskY});
+
+    if (pixel.r < 128) {
+      speed = std::min(speed, 40.0f);
+    }
   }
 }
 
