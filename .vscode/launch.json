@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Turbo Track",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/game",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "Build Turbo Track"
+        }
+    ]
+}
