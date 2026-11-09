@@ -96,5 +96,6 @@ void Car::update(float deltaTime) {
     }
   }
 }
+sf::Vector2f Car::getPosition() const { return carsprite.getPosition(); }
 
 const sf::Sprite& Car::getSprite() const { return carsprite; }

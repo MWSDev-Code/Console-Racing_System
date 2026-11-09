@@ -8,6 +8,7 @@ class Car {
   bool load();
   void update(float deltaTime);
   const sf::Sprite& getSprite() const;
+  sf::Vector2f getPosition() const;
 
  private:
   sf::Texture carTexture;
