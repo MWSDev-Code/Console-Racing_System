@@ -9,7 +9,7 @@ int main()
         "Car Selection" );
     window.setFramerateLimit(60);
     sf::Texture bgTexture;
-    if (!bgTexture.loadFromFile("assets/bg.png"))
+    if (!bgTexture.loadFromFile("assets/cars/bg.png"))
     {
         cout << "Background not found";
         return 1;
@@ -36,7 +36,7 @@ int main()
     backButton.setFillColor(sf::Color(100, 65, 65));
     sf::Font font;
 
-    if (font.openFromFile("Assets/arial.ttf") == false)
+    if (font.openFromFile("assets/arial.ttf") == false)
     {
         cout << "Font not found!";
         return 1;
@@ -103,9 +103,6 @@ int main()
     nextText.setPosition({ 735.f, 565.f });
     selectText.setPosition({ 465.f, 565.f });
     backText.setPosition({ 85.f, 642.f });
-    {
-        std::cout << "FONT NOT FOUND" << std::endl;
-    }
     int carindex = 0;
     int selectedcar = 5;
     while (window.isOpen())
