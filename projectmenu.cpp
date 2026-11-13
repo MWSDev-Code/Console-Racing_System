@@ -21,7 +21,7 @@ int main()
     sf::RenderWindow menu(sf::VideoMode(950,700),"2D RACING GAME_MENU");
     
     sf::Texture menubg;
-    menubg.loadFromFile("aima.png");
+    menubg.loadFromFile("menupic.png");
     sf::Sprite menusprite ;
     menusprite.setTexture(menubg);
     sf::Vector2u bgsize= menubg.getSize();
@@ -44,88 +44,83 @@ sf::RectangleShape soundbox(sf::Vector2f(160.f, 45.f));
     soundbox.setOutlineThickness(2.f);
     soundbox.setOutlineColor(sf::Color::White);
 
-sf::RectangleShape startbox(sf::Vector2f(320.f,50.f));
-startbox.setPosition(315,130);
-startbox.setFillColor(sf::Color::Blue);
-startbox.setOutlineThickness(2.f);
-startbox.setOutlineColor(sf::Color::Cyan);
+    
 
-sf::RectangleShape carbox(sf::Vector2f(320.f,50.f));
-carbox.setPosition(315,200);
-carbox.setFillColor(sf::Color::Blue);
-carbox.setOutlineThickness(2.f);
-carbox.setOutlineColor(sf::Color::Cyan);
-sf::RectangleShape playbox(sf::Vector2f(320.f,50.f));
-playbox.setPosition(315,270);
-playbox.setFillColor(sf::Color::Blue);
-playbox.setOutlineThickness(2.f);
-playbox.setOutlineColor(sf::Color::Cyan);
-sf::RectangleShape settingsbox(sf::Vector2f(320.f,50.f));
-settingsbox.setPosition(315,340);
-settingsbox.setFillColor(sf::Color::Blue);
-settingsbox.setOutlineThickness(2.f);
-settingsbox.setOutlineColor(sf::Color::Cyan);
-sf::RectangleShape exitbox(sf::Vector2f(320.f,50.f));
-exitbox.setPosition(315,410);
-exitbox.setFillColor(sf::Color::Blue);
-exitbox.setOutlineThickness(2.f);
-exitbox.setOutlineColor(sf::Color::Cyan);
+sf::RectangleShape startbox(sf::Vector2f(205.f,55.f));
+startbox.setPosition(15,230);
+startbox.setFillColor(sf::Color(195,25,25));
+
+
+
+sf::RectangleShape carbox(sf::Vector2f(205.f,48.f));
+carbox.setPosition(15,305);
+carbox.setFillColor(sf::Color(55, 55, 55));
+
+sf::RectangleShape settingsbox(sf::Vector2f(205.f,48.f));
+settingsbox.setPosition(15,370);
+settingsbox.setFillColor(sf::Color(55, 55, 55));
+
+sf::RectangleShape exitbox(sf::Vector2f(205.f,48.f));
+exitbox.setPosition(15,435);
+exitbox.setFillColor(sf::Color(55, 55, 55));
+
 sf::RectangleShape records(sf::Vector2f(450,350));
 records.setPosition(250,150);
-records.setFillColor(sf::Color::Black);
+records.setFillColor(sf::Color(25,25,28,235));
 records.setOutlineThickness(3.f);
-records.setOutlineColor(sf::Color::Red); 
+records.setOutlineColor(sf::Color(195,25,25)); 
 sf::RectangleShape back(sf::Vector2f(220,45));
 back.setPosition(365,435);
-back.setFillColor(sf::Color::Yellow);
-back.setOutlineThickness(3.f);
-back.setOutlineColor(sf::Color::Cyan);
+back.setFillColor(sf::Color(195,25,25));
+back.setOutlineThickness(2.f);
+back.setOutlineColor(sf::Color::White);
 
 
 sf::Text soundonoftitle ;
 soundonoftitle.setFont(style);
-soundonoftitle.setPosition(780,36);
+soundonoftitle.setPosition(810,28);
 soundonoftitle.setString("SOUND ON");
 soundonoftitle.setCharacterSize(18);
-soundonoftitle.setFillColor(sf::Color::Black);
+soundonoftitle.setFillColor(sf::Color::White);
 soundonoftitle.setStyle(sf::Text::Bold);
+sf::Text TopHeading;
+    TopHeading.setFont(style);
+    TopHeading.setString("CONSOLE\nRACING");
+    TopHeading.setPosition(22.f, 45.f);
+    TopHeading.setCharacterSize(42);
+    TopHeading.setFillColor(sf::Color::White);
+    TopHeading.setStyle(sf::Text::Bold);
+sf::Text starttitle;
+    starttitle.setFont(style);
+    starttitle.setString("START RACE");
+    starttitle.setStyle(sf::Text::Bold);
+    starttitle.setPosition(38.f, 243.f);
+    starttitle.setCharacterSize(23);
+    starttitle.setFillColor(sf::Color::White);
 
 
 
-sf::Text menutitle ;
-menutitle.setFont(style); 
-menutitle.setString("START RACE");
-menutitle.setPosition(395,140);
-menutitle.setStyle(sf::Text::Bold);
-menutitle.setCharacterSize(24);
-menutitle.setFillColor(sf::Color::White);
 sf::Text cartitle ;
 cartitle.setFont(style); 
-cartitle.setString("SELECT YOUR CAR");
+cartitle.setString("SELECT CAR");
 cartitle.setStyle(sf::Text::Bold);
-cartitle.setPosition(345,210);
-cartitle.setCharacterSize(22);
+cartitle.setPosition(32,317);
+cartitle.setCharacterSize(20);
 cartitle.setFillColor(sf::Color::White);
-sf::Text playtitle ;
-playtitle.setFont(style); 
-playtitle.setString("LET'S PLAY");
-playtitle.setStyle(sf::Text::Bold);
-playtitle.setPosition(400,280);
-playtitle.setCharacterSize(24);
-playtitle.setFillColor(sf::Color::White);
+
 sf::Text settingstitle ;
 settingstitle.setFont(style); 
-settingstitle.setString("SETTINGS");
+settingstitle.setString("SHOW RECORDS");
 settingstitle.setStyle(sf::Text::Bold);
-settingstitle.setPosition(410,350);
-settingstitle.setCharacterSize(24);
+settingstitle.setPosition(32,384);
+settingstitle.setCharacterSize(18);
 settingstitle.setFillColor(sf::Color::White);
 sf::Text exittitle ;
 exittitle.setFont(style); 
 exittitle.setString("EXIT");
 exittitle.setStyle(sf::Text::Bold);
-exittitle.setPosition(445,420);
-exittitle.setCharacterSize(24);
+exittitle.setPosition(32,447);
+exittitle.setCharacterSize(20);
 exittitle.setFillColor(sf::Color::White);
 sf::Text recordtitle;
 
@@ -134,35 +129,35 @@ recordtitle.setString("RECORDS OF PLAYERS");
 recordtitle.setStyle(sf::Text::Bold);
 recordtitle.setPosition(320,175);
 recordtitle.setCharacterSize(26);
-recordtitle.setFillColor(sf::Color::Red);
+recordtitle.setFillColor(sf::Color::White);
 sf::Text highscoretitle ;
 highscoretitle.setFont(style); 
 highscoretitle.setString("HIGHEST SCORE :    ");
 highscoretitle.setStyle(sf::Text::Bold);
 highscoretitle.setPosition(300,245);
 highscoretitle.setCharacterSize(22);
-highscoretitle.setFillColor(sf::Color::Red);
+highscoretitle.setFillColor(sf::Color(255,200,0));
 sf::Text currentscoretitle ;
 currentscoretitle.setFont(style); 
 currentscoretitle.setString("CURRENT SCORE :    ");
 currentscoretitle.setStyle(sf::Text::Bold);
 currentscoretitle.setPosition(300,295);
 currentscoretitle.setCharacterSize(22);
-currentscoretitle.setFillColor(sf::Color::Red);
+currentscoretitle.setFillColor(sf::Color::White);
 sf::Text lowestscoretitle ;
 lowestscoretitle.setFont(style); 
 lowestscoretitle.setString("LOWEST SCORE :     ");
 lowestscoretitle.setStyle(sf::Text::Bold);
 lowestscoretitle.setPosition(300,345);
 lowestscoretitle.setCharacterSize(22);
-lowestscoretitle.setFillColor(sf::Color::Red);
+lowestscoretitle.setFillColor(sf::Color(175,175,180));
 sf::Text backtitle ;
 backtitle.setFont(style); 
 backtitle.setString("BACK TO MENU");
 backtitle.setStyle(sf::Text::Bold);
 backtitle.setPosition(395,447);
 backtitle.setCharacterSize(18);
-backtitle.setFillColor(sf::Color::Black);
+backtitle.setFillColor(sf::Color::White);
 
 
 
@@ -189,26 +184,22 @@ sf::Vector2f mousepos = menu.mapPixelToCoords(sf::Vector2i(a.mouseButton.x, a.mo
                 {
                     rap.pause();
                     SoundOn=false ;
-                    soundonoftitle.setString("SOUND: OFF");
-                            soundbox.setFillColor(sf::Color::Red);
-                            soundonoftitle.setFillColor(sf::Color::White);
+                    soundonoftitle.setString("SOUND OFF");
+                    soundbox.setFillColor(sf::Color(180,0,0));
                 }
                 else
                 {
                     rap.play(); // Music dobara chalane ke liye
                             SoundOn = true;
-                            soundonoftitle.setString("SOUND: ON");
-                            soundbox.setFillColor(sf::Color::Green);
-                            soundonoftitle.setFillColor(sf::Color::Black);
+                            soundonoftitle.setString("SOUND ON");
+        soundbox.setFillColor(sf::Color(35, 35, 35, 220));
+                            
                 }
               }   
                 if(current==GameState::START_RACE)
                 {
-                if(playbox.getGlobalBounds().contains(mousepos))
-                {
-                    current = GameState::PLAYING ;
-                }
-                else if(startbox.getGlobalBounds().contains(mousepos))
+                
+                 if(startbox.getGlobalBounds().contains(mousepos))
                 {
                  current=GameState::PLAYING ;
                 }
@@ -244,41 +235,36 @@ sf::Vector2f mousepos = menu.mapPixelToCoords(sf::Vector2i(a.mouseButton.x, a.mo
     menu.clear();
     menu.draw(menusprite);
     menu.draw(soundbox);
-    menu.draw(soundonoftitle);
+        menu.draw(soundonoftitle);
+    
     switch(current)
     {
         case GameState::START_RACE :
         {
-            
-            menu.draw(startbox); 
-            menu.draw(carbox); 
-            menu.draw(playbox); 
-            menu.draw(settingsbox); 
-            menu.draw(exitbox);
-
-            
-            
-            menu.draw(menutitle);
-             menu.draw(cartitle); 
-             menu.draw(playtitle); 
-             menu.draw(settingstitle);
-             menu.draw(exittitle);
-
-            break;
+            menu.draw(TopHeading);
+         menu.draw(startbox);
+    menu.draw(carbox);
+    menu.draw(settingsbox);
+    menu.draw(exitbox);
+    menu.draw(starttitle);
+                menu.draw(cartitle);
+                menu.draw(settingstitle);
+                menu.draw(exittitle);
+            break ;
         }
+        
+        
         case GameState::CAR_SELECTION :
         {
-            menu.draw(menusprite);
-            menu.draw(cartitle);
-
-
+            
+         menu.draw(cartitle);
 
             break;
         }
         case GameState::PLAYING :
         {
-            menu.draw(menusprite);
-            menu.draw(playtitle);
+            
+            
 
 
             break ;
