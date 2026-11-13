@@ -9,6 +9,7 @@ enum GameState
      PLAYING,
      SETTINGS,
      EXIT
+     
 
 
 
@@ -28,6 +29,7 @@ int main()
 sf::Music rap ;
 rap.openFromFile("beat.wav");
 rap.play();
+bool SoundOn = true ;
 
 
 
@@ -36,6 +38,11 @@ rap.play();
     GameState current =GameState::START_RACE;
 sf::Font style ;
 style.loadFromFile("arial.ttf");
+sf::RectangleShape soundbox(sf::Vector2f(160.f, 45.f));
+    soundbox.setPosition(760, 25);
+    soundbox.setFillColor(sf::Color::Green); 
+    soundbox.setOutlineThickness(2.f);
+    soundbox.setOutlineColor(sf::Color::White);
 
 sf::RectangleShape startbox(sf::Vector2f(320.f,50.f));
 startbox.setPosition(315,130);
@@ -75,6 +82,13 @@ back.setOutlineThickness(3.f);
 back.setOutlineColor(sf::Color::Cyan);
 
 
+sf::Text soundonoftitle ;
+soundonoftitle.setFont(style);
+soundonoftitle.setPosition(780,36);
+soundonoftitle.setString("SOUND ON");
+soundonoftitle.setCharacterSize(18);
+soundonoftitle.setFillColor(sf::Color::Black);
+soundonoftitle.setStyle(sf::Text::Bold);
 
 
 
@@ -169,6 +183,25 @@ backtitle.setFillColor(sf::Color::Black);
              if(a.mouseButton.button == sf::Mouse::Left)
                 {
 sf::Vector2f mousepos = menu.mapPixelToCoords(sf::Vector2i(a.mouseButton.x, a.mouseButton.y));
+              if(soundbox.getGlobalBounds().contains(mousepos))
+              {
+                if(SoundOn)
+                {
+                    rap.pause();
+                    SoundOn=false ;
+                    soundonoftitle.setString("SOUND: OFF");
+                            soundbox.setFillColor(sf::Color::Red);
+                            soundonoftitle.setFillColor(sf::Color::White);
+                }
+                else
+                {
+                    rap.play(); // Music dobara chalane ke liye
+                            SoundOn = true;
+                            soundonoftitle.setString("SOUND: ON");
+                            soundbox.setFillColor(sf::Color::Green);
+                            soundonoftitle.setFillColor(sf::Color::Black);
+                }
+              }   
                 if(current==GameState::START_RACE)
                 {
                 if(playbox.getGlobalBounds().contains(mousepos))
@@ -210,6 +243,8 @@ sf::Vector2f mousepos = menu.mapPixelToCoords(sf::Vector2i(a.mouseButton.x, a.mo
         }
     menu.clear();
     menu.draw(menusprite);
+    menu.draw(soundbox);
+    menu.draw(soundonoftitle);
     switch(current)
     {
         case GameState::START_RACE :
