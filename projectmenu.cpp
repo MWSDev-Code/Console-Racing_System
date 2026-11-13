@@ -38,9 +38,9 @@ bool SoundOn = true ;
     GameState current =GameState::START_RACE;
 sf::Font style ;
 style.loadFromFile("arial.ttf");
-sf::RectangleShape soundbox(sf::Vector2f(160.f, 45.f));
-    soundbox.setPosition(760, 25);
-    soundbox.setFillColor(sf::Color::Green); 
+sf::RectangleShape soundbox(sf::Vector2f(145.f, 42.f));
+    soundbox.setPosition(790, 18);
+    soundbox.setFillColor(sf::Color(35,35,35,220));
     soundbox.setOutlineThickness(2.f);
     soundbox.setOutlineColor(sf::Color::White);
 
