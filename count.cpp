@@ -5,7 +5,7 @@ int main()
     sf::RenderWindow countdown(sf::VideoMode(1000,700),"COUNTDOWN");
     countdown.setFramerateLimit(60);
     sf::Texture tom ;
-    tom.loadFromFile("wow.png");
+    tom.loadFromFile("final.png");
     sf::Sprite jerry ;
     jerry.setTexture(tom);
     jerry.setScale({1000.0f,700.0f});
@@ -32,22 +32,22 @@ int main()
           if(counting<1.0f)
           {
             cd.setString("3");
-            cd.setFillColor(sf::Color::Red);
+            cd.setFillColor(sf::Color::White);
           }
           else if(counting<2.0f)
           {
             cd.setString("2");
-            cd.setFillColor(sf::Color::Yellow);
+            cd.setFillColor(sf::Color::White);
           }
           else if(counting<3.0f)
           {
             cd.setString("1");
-            cd.setFillColor(sf::Color::Cyan);
+            cd.setFillColor(sf::Color::White);
           }
           else if(counting<4.0f)
           {
             cd.setString("GO!");
-            cd.setFillColor(sf::Color::Magenta);
+            cd.setFillColor(sf::Color::White);
           }
           else 
           countdown.close();
