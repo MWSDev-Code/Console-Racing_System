@@ -300,6 +300,7 @@ int main()
                 box4.setOutlineColor(sf::Color::White);
                 box4.setOutlineThickness(2);
             }
+
             else
             {
                 box1.setOutlineColor(sf::Color::White);
