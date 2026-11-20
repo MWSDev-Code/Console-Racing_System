@@ -1,6 +1,5 @@
-#include "Game.h"
+#include "projectmenu.h"
 
 int main(){
-    Game game;
-    return game.run();
+    return runMenu();
 }

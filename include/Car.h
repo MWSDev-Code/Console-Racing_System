@@ -5,7 +5,7 @@
 class Car {
  public:
   Car();
-  bool load();
+  bool load(int selectedCar = -1);
   void update(float deltaTime);
   const sf::Sprite& getSprite() const;
   sf::Vector2f getPosition() const;

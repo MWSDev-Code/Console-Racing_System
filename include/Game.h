@@ -2,5 +2,5 @@
 
 class Game{
 public:
-    int run();
+    int run(int selectedCar = -1);
 };

@@ -12,7 +12,7 @@
 #include "Car.h"
 #include "checkpoint.h"
 
-int Game::run() {
+int Game::run(int selectedCar) {
   sf::RenderWindow window(
       sf::VideoMode({1280, 720}),
       "Console Racing");  // This means add a SFML window of this size
@@ -31,7 +31,7 @@ int Game::run() {
   tracksprite.setScale(
       {1280.0f / trackTexture.getSize().x, 720.0f / trackTexture.getSize().y});
   Car car;
-  if (!car.load()) {
+  if (!car.load(selectedCar)) {
     return 1;
   }
   // Store checkpoint areas for collision detection

@@ -7,6 +7,8 @@
             "command": "clang++",
             "args": [
                 "src/main.cpp",
+                "src/projectmenu.cpp",
+                "src/CarSelection.cpp",
                 "src/Car.cpp",
                 "src/Game.cpp",
                 "src/checkpoint.cpp",
@@ -18,6 +20,7 @@
                 "-I/opt/homebrew/opt/sfml/include",
                 "-L/opt/homebrew/opt/sfml/lib",
                 "-lsfml-graphics",
+                "-lsfml-audio",
                 "-lsfml-window",
                 "-lsfml-system"
             ],

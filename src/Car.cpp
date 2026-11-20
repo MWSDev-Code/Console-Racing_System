@@ -2,11 +2,16 @@
 
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 Car::Car() : carsprite(carTexture) {}
 
-bool Car::load() {
-  if (!carTexture.loadFromFile("assets/cars/Car1.png")) {
+bool Car::load(int selectedCar) {
+  const bool hasSelection = selectedCar >= 0 && selectedCar < 4;
+  const std::string texturePath = hasSelection
+      ? "assets/cars/selection/car" + std::to_string(selectedCar + 1) + ".png"
+      : "assets/cars/Car1.png";
+  if (!carTexture.loadFromFile(texturePath)) {
     return false;
   }
   if (!Track_Mask.loadFromFile("assets/track/Track_Mask.png")) {
@@ -14,7 +19,8 @@ bool Car::load() {
   }
 
   carsprite.setTexture(carTexture, true);
-  carsprite.setScale({0.12f, 0.12f});
+  const float scale = hasSelection ? 0.16f : 0.12f;
+  carsprite.setScale({scale, scale});
   sf::FloatRect carBounds = carsprite.getLocalBounds();
 
   carsprite.setOrigin({carBounds.position.x + carBounds.size.x / 2.0f,
