@@ -3,8 +3,10 @@
 
 #include <algorithm>
 #include <array>
+#include <iomanip>
 #include <iostream>
 #include <optional>
+#include <sstream>
 #include <string>
 
 #include "Car.h"
@@ -50,6 +52,15 @@ int Game::run() {
 
   std::array<bool, 4> wasInsideCheckpoint = {false, false, false, false};
 
+  constexpr unsigned int totalLaps = 3;
+  unsigned int completedLaps = 0;
+  bool raceFinished = false;
+
+  // finish-line zone.
+  const sf::FloatRect finishLineArea{{620.f, 535.f}, {40.f, 130.f}};
+
+  bool wasInsideFinishLine = finishLineArea.contains(car.getPosition());
+
   // Load font
   sf::Font font;
 
@@ -71,9 +82,22 @@ int Game::run() {
   checkpointMessage.setFillColor(sf::Color::Yellow);
   checkpointMessage.setOutlineColor(sf::Color::Black);
   checkpointMessage.setOutlineThickness(2.f);
+  sf::Text lapCounter(font, "Lap: 1/3", 26);
+  lapCounter.setPosition({20.f, 100.f});
+  lapCounter.setFillColor(sf::Color::White);
+  lapCounter.setOutlineColor(sf::Color::Black);
+  lapCounter.setOutlineThickness(2.f);
+
+  sf::Text timerText(font, "Time: 0.00 s", 26);
+  timerText.setPosition({20.f, 140.f});
+  timerText.setFillColor(sf::Color::White);
+  timerText.setOutlineColor(sf::Color::Black);
+  timerText.setOutlineThickness(2.f);
 
   // Show checkpoint rectangles for testing
   constexpr bool showDebugCheckpoints = true;
+
+  sf::Clock raceClock;
 
   sf::Clock
       frameClock;  // It is kind of a stopwatch.              / Thing is we use
@@ -96,12 +120,23 @@ int Game::run() {
     }
 
     car.update(deltaTime);
+    if (!raceFinished) {
+      const float elapsedSeconds = raceClock.getElapsedTime().asSeconds();
+
+      std::ostringstream timerStream;
+      timerStream << "Time: " << std::fixed << std::setprecision(2)
+                  << elapsedSeconds << " s";
+
+      timerText.setString(timerStream.str());
+
+      car.update(deltaTime);
+    }
 
     // Check if the car enters a checkpoint
     for (std::size_t i = 0; i < checkpoints.size(); i++) {
       bool isInsideCheckpoint = checkpoints[i].contains(car.getPosition());
 
-      if (isInsideCheckpoint && !wasInsideCheckpoint[i] &&
+      if (!raceFinished && isInsideCheckpoint && !wasInsideCheckpoint[i] &&
           i == nextCheckpoint) {
         nextCheckpoint++;
 
@@ -117,12 +152,43 @@ int Game::run() {
             "Checkpoint " + std::to_string(nextCheckpoint) + " reached!");
 
         if (nextCheckpoint == checkpoints.size()) {
-          checkpointMessage.setString("All checkpoints completed!");
+          if (completedLaps + 1 == totalLaps) {
+            checkpointMessage.setString(
+                "All checkpoints reached! Cross the finish line.");
+          } else {
+            checkpointMessage.setString("Checkpoint 4 reached!");
+          }
         }
       }
 
       wasInsideCheckpoint[i] = isInsideCheckpoint;
     }
+    const bool isInsideFinishLine = finishLineArea.contains(car.getPosition());
+
+    if (!raceFinished && isInsideFinishLine && !wasInsideFinishLine &&
+        nextCheckpoint == checkpoints.size()) {
+      ++completedLaps;
+
+      std::cout << "Lap " << completedLaps << " completed!" << std::endl;
+
+      if (completedLaps == totalLaps) {
+        raceFinished = true;
+
+        lapCounter.setString("Laps completed: 3/3");
+        checkpointMessage.setString("Race finished! All 3 laps completed.");
+      } else {
+        nextCheckpoint = 0;
+
+        checkpointCounter.setString("Checkpoints: 0/4");
+
+        lapCounter.setString("Lap: " + std::to_string(completedLaps + 1) +
+                             "/3");
+
+        checkpointMessage.setString("Reach checkpoint 1");
+      }
+    }
+
+    wasInsideFinishLine = isInsideFinishLine;
 
     window.clear();  // It clears the previous frame
     window.draw(tracksprite);
@@ -139,13 +205,24 @@ int Game::run() {
         window.draw(shape);
       }
     }
+    if (showDebugCheckpoints) {
+      sf::RectangleShape finishShape(finishLineArea.size);
+
+      finishShape.setPosition(finishLineArea.position);
+      finishShape.setFillColor(sf::Color(0, 255, 255, 70));
+      finishShape.setOutlineColor(sf::Color::Cyan);
+      finishShape.setOutlineThickness(2.f);
+
+      window.draw(finishShape);
+    }
 
     window.draw(car.getSprite());
 
     // Draw checkpoint information
     window.draw(checkpointCounter);
     window.draw(checkpointMessage);
-
+    window.draw(lapCounter);
+    window.draw(timerText);
     window.display();  // Shows the new frame
   }
 
