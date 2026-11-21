@@ -19,7 +19,8 @@ bool Car::load(int selectedCar) {
   }
 
   carsprite.setTexture(carTexture, true);
-  const float scale = hasSelection ? 0.16f : 0.12f;
+  // Both sets of sprites show a car about 120 pixels long at these scales.
+  const float scale = hasSelection ? 0.27f : 0.12f;
   carsprite.setScale({scale, scale});
   sf::FloatRect carBounds = carsprite.getLocalBounds();
 
