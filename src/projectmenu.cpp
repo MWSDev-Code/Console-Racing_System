@@ -16,11 +16,11 @@ int runMenu() {
   sf::RenderWindow menu(sf::VideoMode({950, 700}), "2D RACING GAME_MENU");
   menu.setFramerateLimit(60);
   sf::Sprite menuSprite(background);
-  menuSprite.setScale({950.f / background.getSize().x,
-                       700.f / background.getSize().y});
+  menuSprite.setScale(
+      {950.f / background.getSize().x, 700.f / background.getSize().y});
 
   sf::Music music;
-  const bool musicLoaded = music.openFromFile("assets/sounds/beat.wav");
+  const bool musicLoaded = music.openFromFile("assets/sounds/menu_sound.mp3");
   bool soundOn = musicLoaded;
   if (soundOn) {
     music.play();
@@ -70,11 +70,11 @@ int runMenu() {
   const auto recordsTitle = makeText("SHOW RECORDS", 18, {32, 384});
   const auto exitTitle = makeText("EXIT", 20, {32, 447});
   const auto recordHeading = makeText("RECORDS OF PLAYERS", 26, {320, 175});
-  const auto highScore = makeText("HIGHEST SCORE :    ", 22, {300, 245},
-                                  sf::Color(255, 200, 0));
+  const auto highScore =
+      makeText("HIGHEST SCORE :    ", 22, {300, 245}, sf::Color(255, 200, 0));
   const auto currentScore = makeText("CURRENT SCORE :    ", 22, {300, 295});
-  const auto lowScore = makeText("LOWEST SCORE :     ", 22, {300, 345},
-                                 sf::Color(175, 175, 180));
+  const auto lowScore =
+      makeText("LOWEST SCORE :     ", 22, {300, 345}, sf::Color(175, 175, 180));
   const auto backTitle = makeText("BACK TO MENU", 18, {395, 447});
 
   bool showingRecords = false;

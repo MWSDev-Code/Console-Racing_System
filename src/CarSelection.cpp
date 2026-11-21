@@ -1,201 +1,146 @@
 #include "projectmenu.h"
 
 #include <SFML/Graphics.hpp>
+#include <algorithm>
+#include <array>
 #include <iostream>
-using namespace std;
+#include <string>
+
+namespace
+{
+void centerText(sf::Text& text, sf::Vector2f position)
+{
+    const auto bounds = text.getLocalBounds();
+    text.setOrigin(bounds.position + bounds.size / 2.f);
+    text.setPosition(position);
+}
+
+void fitCar(sf::Sprite& sprite, sf::Vector2f center, sf::Vector2f available)
+{
+    const auto bounds = sprite.getLocalBounds();
+    sprite.setOrigin(bounds.position + bounds.size / 2.f);
+    const auto rotatedSize = sprite.getGlobalBounds().size;
+    const float scale = std::min(available.x / rotatedSize.x, available.y / rotatedSize.y);
+    sprite.setScale({scale, scale});
+    sprite.setPosition(center);
+}
+
+struct CarChoice
+{
+    sf::Texture previewTexture;
+    sf::Texture thumbnailTexture;
+    sf::Sprite preview{previewTexture};
+    sf::Sprite thumbnail{thumbnailTexture};
+    sf::RectangleShape card;
+};
+}
+
 int selectCar(int selectedCar)
 {
     sf::RenderWindow window(
         sf::VideoMode::getDesktopMode(), "Car Selection", sf::State::Fullscreen);
     window.setFramerateLimit(60);
-    window.setView(sf::View(sf::FloatRect({0.f, 0.f}, {1920.f, 1180.f})));
+    const sf::Vector2f canvas{1672.f, 941.f};
+    sf::View view(sf::FloatRect({0.f, 0.f}, canvas));
+    const float aspect = static_cast<float>(window.getSize().x) / window.getSize().y;
+    const float canvasAspect = canvas.x / canvas.y;
+    const sf::Vector2f viewportSize{
+        std::min(1.f, canvasAspect / aspect), std::min(1.f, aspect / canvasAspect)};
+    view.setViewport({(sf::Vector2f{1.f, 1.f} - viewportSize) / 2.f, viewportSize});
+    window.setView(view);
+
     sf::Texture bgTexture;
-    if (!bgTexture.loadFromFile("assets/ui/bg.png"))
+    if (!bgTexture.loadFromFile("assets/ui/car-selection-garage.jpg"))
     {
-        cout << "Background not found";
+        std::cerr << "Background not found\n";
         return -1;
     }
+    bgTexture.setSmooth(true);
     sf::Sprite background(bgTexture);
-    background.setScale({
-        1920.f / bgTexture.getSize().x,
-        1180.f / bgTexture.getSize().y
-        });
-    sf::RectangleShape previousButton({ 200.f, 75.f });
-    previousButton.setPosition({ 500.f, 950.f });
-    previousButton.setFillColor(sf::Color::Transparent);
-    sf::RectangleShape nextButton({ 200.f, 75.f });
-    nextButton.setPosition({ 1220.f, 950.f });
-    nextButton.setFillColor(sf::Color::Transparent);
-    sf::RectangleShape selectButton({ 300.f, 90.f });
-    selectButton.setPosition({ 810.f, 940.f });
-    selectButton.setFillColor(sf::Color(210, 15, 25));
-    sf::RectangleShape backButton({ 160.f, 65.f });
-    backButton.setPosition({ 70.f, 1060.f });
-    backButton.setFillColor(sf::Color::Transparent);
-    previousButton.setOutlineThickness(2.f);
-    previousButton.setOutlineColor(sf::Color::White);
-    nextButton.setOutlineThickness(2.f);
-    nextButton.setOutlineColor(sf::Color::White);
-    selectButton.setOutlineThickness(7.f);
-    selectButton.setOutlineColor(sf::Color::White);
-    backButton.setOutlineThickness(2.f);
-    backButton.setOutlineColor(sf::Color::White);
+    background.setScale({canvas.x / bgTexture.getSize().x, canvas.y / bgTexture.getSize().y});
+
     sf::Font font;
-    if (font.openFromFile("assets/fonts/arial.ttf") == false)
+    if (!font.openFromFile("assets/fonts/arial.ttf"))
     {
-        cout << "Font not found!";
-        return -1;
-    }
-    sf::Texture carTexture1;
-    sf::Texture carTexture2;
-    sf::Texture carTexture3;
-    sf::Texture carTexture4;
-    sf::Text title(font, "SELECT YOUR CAR", 50);
-    title.setFillColor(sf::Color::White);
-    title.setStyle(sf::Text::Bold | sf::Text::Italic);
-    sf::RectangleShape leftline({ 110.f, 4.f });
-    leftline.setFillColor(sf::Color(210, 20, 30));
-    leftline.setPosition({ 580.f, 110.f });
-    sf::RectangleShape rightline({ 110.f, 4.f });
-    rightline.setFillColor(sf::Color(210, 20, 30));
-    rightline.setPosition({ 1245.f, 110.f });
-    sf::FloatRect textBounds = title.getLocalBounds();
-    title.setOrigin({
-        textBounds.size.x / 2.f,
-        textBounds.size.y / 2.f
-        });
-    title.setPosition({ 960.f, 100.f });
-    if (carTexture1.loadFromFile("assets/cars/selection/maincar1.png") == false)
-    {
-        cout << "Unable to load car 1";
-        return -1;
-    }
-    if (carTexture2.loadFromFile("assets/cars/selection/maincar2.png") == false)
-    {
-        cout << "Unable to load car 2";
+        std::cerr << "Font not found\n";
         return -1;
     }
 
-    if (carTexture3.loadFromFile("assets/cars/selection/maincar3.png") == false)
+    const sf::Color accent(224, 5, 12);
+    const sf::Color border(175, 175, 178);
+    const sf::Color panelColor(17, 19, 21, 246);
+    const auto makePanel = [&](sf::Vector2f size, sf::Vector2f position) {
+        sf::RectangleShape panel(size);
+        panel.setPosition(position);
+        panel.setFillColor(panelColor);
+        panel.setOutlineColor(border);
+        panel.setOutlineThickness(-1.f);
+        return panel;
+    };
+
+    sf::Text title(font, "SELECT YOUR CAR", 64);
+    title.setStyle(sf::Text::Bold);
+    title.setScale({0.79f, 1.f});
+    title.setOrigin(title.getLocalBounds().position);
+    title.setPosition({120.f, 40.f});
+
+    sf::Text previewLabel(font, "", 26);
+    previewLabel.setStyle(sf::Text::Bold);
+
+    std::array<CarChoice, 4> choices;
+    std::array<sf::Text, 4> labels{
+        sf::Text(font, "CAR 1", 22), sf::Text(font, "CAR 2", 22),
+        sf::Text(font, "CAR 3", 22), sf::Text(font, "CAR 4", 22)};
+    const std::string carDirectory = "assets/cars/selection/";
+    for (std::size_t i = 0; i < choices.size(); ++i)
     {
-        cout << "Unable to load car 3";
-        return -1;
+        auto& choice = choices[i];
+        const auto filename = "car" + std::to_string(i + 1) + ".png";
+        if (!choice.previewTexture.loadFromFile(carDirectory + "main" + filename) ||
+            !choice.thumbnailTexture.loadFromFile(carDirectory + filename))
+        {
+            return -1;
+        }
+        choice.previewTexture.setSmooth(true);
+        choice.thumbnailTexture.setSmooth(true);
+        choice.preview.setTexture(choice.previewTexture, true);
+        choice.thumbnail.setTexture(choice.thumbnailTexture, true);
+
+        fitCar(choice.preview, {856.f, 425.f}, {980.f, 540.f});
+        const float left = 371.f + 240.f * i;
+        choice.card = makePanel({210.f, 131.f}, {left, 654.f});
+        choice.thumbnail.setRotation(sf::degrees(-90.f));
+        fitCar(choice.thumbnail, {left + 105.f, 708.f}, {117.f, 117.f});
+        labels[i].setStyle(sf::Text::Bold);
+        centerText(labels[i], {left + 105.f, 758.f});
     }
 
-    if (carTexture4.loadFromFile("assets/cars/selection/maincar4.png") == false)
-    {
-        cout << "Unable to load car 4";
-        return -1;
-    }
-    sf::Sprite carsprite1(carTexture1);
-    sf::Sprite carsprite2(carTexture2);
-    sf::Sprite carsprite3(carTexture3);
-    sf::Sprite carsprite4(carTexture4);
-    carsprite1.setScale({ 1.0f, 1.0f });
-    carsprite2.setScale({ 1.0f, 1.0f });
-    carsprite3.setScale({ 1.0f, 1.0f });
-    carsprite4.setScale({ 1.0f, 1.0f });
-    sf::FloatRect car1Bounds = carsprite1.getGlobalBounds();
-    carsprite1.setPosition({
-        960.f - car1Bounds.size.x / 2.f - car1Bounds.position.x,
-        590.f - car1Bounds.size.y / 2.f - car1Bounds.position.y
-        });
-    sf::FloatRect car2Bounds = carsprite2.getGlobalBounds();
-    carsprite2.setPosition({
-         960.f - car2Bounds.size.x / 2.f - car2Bounds.position.x,
-         590.f - car2Bounds.size.y / 2.f - car2Bounds.position.y
-        });
+    const auto previousButton = makePanel({260.f, 62.f}, {171.f, 830.f});
+    const auto nextButton = makePanel({260.f, 62.f}, {1241.f, 830.f});
+    auto selectButton = makePanel({422.f, 73.f}, {625.f, 823.f});
+    selectButton.setFillColor(accent);
+    selectButton.setOutlineColor(sf::Color::White);
+    const auto backButton = makePanel({136.f, 53.f}, {1470.f, 39.f});
 
-    sf::FloatRect car3Bounds = carsprite3.getGlobalBounds();
+    const auto buttonLabel = [&](const sf::RectangleShape& button, const char* label,
+                                 unsigned int size) {
+        sf::Text text(font, label, size);
+        text.setStyle(sf::Text::Bold);
+        centerText(text, button.getPosition() + button.getSize() / 2.f);
+        return text;
+    };
+    auto previousText = buttonLabel(previousButton, "PREVIOUS", 25);
+    auto nextText = buttonLabel(nextButton, "NEXT", 25);
+    const auto selectText = buttonLabel(selectButton, "SELECT CAR", 37);
+    const auto backText = buttonLabel(backButton, "BACK", 25);
 
-    carsprite3.setPosition({
-        960.f - car3Bounds.size.x / 2.f - car3Bounds.position.x,
-        590.f - car3Bounds.size.y / 2.f - car3Bounds.position.y
-        });
+    sf::RectangleShape checkmarkShort({14.f, 5.f});
+    checkmarkShort.setRotation(sf::degrees(45.f));
+    sf::RectangleShape checkmarkLong({22.f, 5.f});
+    checkmarkLong.setRotation(sf::degrees(-45.f));
 
-    sf::FloatRect car4Bounds = carsprite4.getGlobalBounds();
-    carsprite4.setPosition({
-        960.f - car4Bounds.size.x / 2.f - car4Bounds.position.x,
-        590.f - car4Bounds.size.y / 2.f - car4Bounds.position.y
-        });
-
-    sf::Text previousText(font, "PREVIOUS", 25);
-    sf::Text nextText(font, "NEXT", 25);
-    sf::Text selectText(font, "SELECT", 45);
-    sf::Text backText(font, "BACK", 25);
-
-    previousText.setFillColor(sf::Color::White);
-    nextText.setFillColor(sf::Color::White);
-    selectText.setFillColor(sf::Color::White);
-    backText.setFillColor(sf::Color::White);
-    previousText.setPosition({ 530.f, 975.f });
-    nextText.setPosition({ 1280.f, 975.f });
-    selectText.setPosition({ 895.f, 970.f });
-    backText.setPosition({ 115.f, 1080.f });
-    previousText.setStyle(sf::Text::Bold);
-    nextText.setStyle(sf::Text::Bold);
-    backText.setStyle(sf::Text::Bold);
-    selectText.setStyle(sf::Text::Bold);
-    selectText.setCharacterSize(35);
-    sf::RectangleShape box1({ 140,65 });
-    sf::RectangleShape box2({ 140,65 });
-    sf::RectangleShape box3({ 140,65 });
-    sf::RectangleShape box4({ 140,65 });
-    box1.setSize({ 170,90 });
-    box2.setSize({ 170,90 });
-    box3.setSize({ 170,90 });
-    box4.setSize({ 170,90 });
-    box1.setPosition({ 550 , 780 });
-    box1.setOutlineThickness(2);
-    box1.setOutlineColor(sf::Color::Red);
-    box2.setPosition({ 750 , 780 });
-    box2.setOutlineThickness(2);
-    box2.setOutlineColor(sf::Color::Red);
-    box3.setPosition({ 950 , 780 });
-    box3.setOutlineThickness(2);
-    box3.setOutlineColor(sf::Color::Red);
-    box4.setPosition({ 1150 ,780 });
-    box4.setOutlineThickness(2);
-    box4.setOutlineColor(sf::Color::Red);
-    box1.setFillColor(sf::Color::Transparent);
-    box2.setFillColor(sf::Color::Transparent);
-    box3.setFillColor(sf::Color::Transparent);
-    box4.setFillColor(sf::Color::Transparent);
-    sf::Texture car1;
-    sf::Texture car2;
-    sf::Texture car3;
-    sf::Texture car4;
-    if (!car1.loadFromFile("assets/cars/selection/car1.png") ||
-        !car2.loadFromFile("assets/cars/selection/car2.png") ||
-        !car3.loadFromFile("assets/cars/selection/car3.png") ||
-        !car4.loadFromFile("assets/cars/selection/car4.png"))
-    {
-        return -1;
-    }
-    sf::Sprite scar1(car1);
-    sf::Sprite scar2(car2);
-    sf::Sprite scar3(car3);
-    sf::Sprite scar4(car4);
-    scar1.setPosition({ 625 , 825 });
-    scar2.setPosition({ 825 , 825 });
-    scar3.setPosition({ 1025 , 825 });
-    scar4.setPosition({ 1225 ,825 });
-    scar1.setScale({ 0.30f, 0.30f });
-    scar2.setScale({ 0.30f, 0.30f });
-    scar3.setScale({ 0.30f, 0.30f });
-    scar4.setScale({ 0.30f, 0.30f });
-    scar1.setRotation(sf::degrees(-90));
-    scar2.setRotation(sf::degrees(-90));
-    scar3.setRotation(sf::degrees(-90));
-    scar4.setRotation(sf::degrees(-90));
-    scar1.setOrigin({ scar1.getLocalBounds().size.x / 2 , scar1.getLocalBounds().size.y / 2 });
-    scar2.setOrigin({ scar2.getLocalBounds().size.x / 2 , scar2.getLocalBounds().size.y / 2 });
-    scar3.setOrigin({ scar3.getLocalBounds().size.x / 2 , scar3.getLocalBounds().size.y / 2 });
-    scar4.setOrigin({ scar4.getLocalBounds().size.x / 2 , scar4.getLocalBounds().size.y / 2 });
-
-
-
-    int carindex = selectedCar < 0 ? 0 : selectedCar;
+    const int lastCar = static_cast<int>(choices.size()) - 1;
+    int carIndex = std::clamp(selectedCar, 0, lastCar);
     while (window.isOpen())
     {
         while (const auto event = window.pollEvent())
@@ -210,142 +155,61 @@ int selectCar(int selectedCar)
             {
                 const auto position = window.mapPixelToCoords(click->position);
                 if (backButton.getGlobalBounds().contains(position))
-                {
                     return -1;
-                }
-                if (nextButton.getGlobalBounds().contains(position) && carindex < 3)
-                {
-                    ++carindex;
-                }
-                if (previousButton.getGlobalBounds().contains(position) && carindex > 0)
-                {
-                    --carindex;
-                }
                 if (selectButton.getGlobalBounds().contains(position))
+                    return carIndex;
+                if (nextButton.getGlobalBounds().contains(position) && carIndex < lastCar)
+                    ++carIndex;
+                if (previousButton.getGlobalBounds().contains(position) && carIndex > 0)
+                    --carIndex;
+
+                for (int i = 0; i <= lastCar; ++i)
                 {
-                    return carindex;
+                    if (choices[i].card.getGlobalBounds().contains(position))
+                        carIndex = i;
                 }
             }
         }
-
-        if (carindex == 0)
-        {
-            previousButton.setFillColor(sf::Color::Transparent);
-            nextText.setFillColor(sf::Color::White);
-            previousButton.setOutlineColor(sf::Color::Transparent);
-            previousText.setFillColor(sf::Color::Transparent);
-            nextButton.setOutlineColor(sf::Color::White);
-            nextButton.setFillColor(sf::Color::White);
-            nextText.setFillColor(sf::Color::White);
-            previousButton.setFillColor(sf::Color::Transparent);
-            nextButton.setFillColor(sf::Color::Transparent);
-            box1.setOutlineColor(sf::Color::Green);   box1.setOutlineThickness(5);
-            box2.setOutlineColor(sf::Color::White);
-            box2.setOutlineThickness(2);
-            box3.setOutlineColor(sf::Color::White);
-            box3.setOutlineThickness(2);
-            box4.setOutlineColor(sf::Color::White);
-            box4.setOutlineThickness(2);
-
-
-        }
-        else if (carindex == 3)
-        {
-            nextText.setFillColor(sf::Color::Transparent);
-            previousText.setFillColor(sf::Color::White);
-            nextButton.setFillColor(sf::Color::Transparent);
-            nextButton.setOutlineColor(sf::Color::Transparent);
-            previousButton.setOutlineColor(sf::Color::White);
-            previousButton.setFillColor(sf::Color::White);
-            nextButton.setFillColor(sf::Color::Transparent);
-            previousButton.setFillColor(sf::Color::Transparent);
-            box4.setOutlineColor(sf::Color::Green);
-            box4.setOutlineThickness(5);
-            box1.setOutlineColor(sf::Color::White);
-            box1.setOutlineThickness(2);
-            box2.setOutlineColor(sf::Color::White);
-            box2.setOutlineThickness(2);
-            box3.setOutlineColor(sf::Color::White);
-            box3.setOutlineThickness(2);
-        }
-        else
-        {
-            previousText.setFillColor(sf::Color::White);
-            nextText.setFillColor(sf::Color::White);
-            previousButton.setOutlineColor(sf::Color::White);
-            nextButton.setOutlineColor(sf::Color::White);
-            previousButton.setFillColor(sf::Color::Transparent);
-            nextButton.setFillColor(sf::Color::Transparent);
-            previousButton.setOutlineColor(sf::Color::White);
-            nextButton.setOutlineColor(sf::Color::White);
-            box4.setOutlineColor(sf::Color::Green);
-            box4.setOutlineThickness(5);
-            if (carindex == 1)
-            {
-                box1.setOutlineColor(sf::Color::White);
-                box1.setOutlineThickness(2);
-                box2.setOutlineColor(sf::Color::Green);
-                box2.setOutlineThickness(5);
-                box3.setOutlineColor(sf::Color::White);
-                box3.setOutlineThickness(2);
-                box4.setOutlineColor(sf::Color::White);
-                box4.setOutlineThickness(2);
-            }
-            else
-            {
-                box1.setOutlineColor(sf::Color::White);
-                box1.setOutlineThickness(2);
-                box3.setOutlineColor(sf::Color::Green);
-                box3.setOutlineThickness(5);
-                box2.setOutlineColor(sf::Color::White);
-                box2.setOutlineThickness(2);
-                box4.setOutlineColor(sf::Color::White);
-                box4.setOutlineThickness(2);
-            }
-        }
-
 
         window.clear();
-
         window.draw(background);
         window.draw(title);
+        window.draw(choices[carIndex].preview);
+        previewLabel.setString("CAR " + std::to_string(carIndex + 1));
+        centerText(previewLabel, {836.f, 603.f});
+        window.draw(previewLabel);
 
-        if (carindex == 0)
+        for (int i = 0; i <= lastCar; ++i)
         {
-            window.draw(carsprite1);
+            auto& choice = choices[i];
+            const bool active = i == carIndex;
+            choice.card.setOutlineColor(active ? accent : border);
+            choice.card.setOutlineThickness(active ? -4.f : -1.f);
+            choice.card.setFillColor(active ? sf::Color(43, 19, 21, 243) : panelColor);
+            window.draw(choice.card);
+            window.draw(choice.thumbnail);
+            window.draw(labels[i]);
+            if (active)
+            {
+                const auto corner = choice.card.getPosition() + sf::Vector2f{173.f, 9.f};
+                checkmarkShort.setPosition(corner + sf::Vector2f{3.f, 7.f});
+                checkmarkLong.setPosition(corner + sf::Vector2f{9.f, 17.f});
+                window.draw(checkmarkShort);
+                window.draw(checkmarkLong);
+            }
         }
-        else if (carindex == 1)
-        {
-            window.draw(carsprite2);
-        }
-        else if (carindex == 2)
-        {
-            window.draw(carsprite3);
-        }
-        else if (carindex == 3)
-        {
-            window.draw(carsprite4);
-        }
+
+        previousText.setFillColor(carIndex > 0 ? sf::Color::White : border);
+        nextText.setFillColor(carIndex < lastCar ? sf::Color::White : border);
         window.draw(previousButton);
-        window.draw(nextButton);
-        window.draw(selectButton);
-        window.draw(backButton);
         window.draw(previousText);
+        window.draw(nextButton);
         window.draw(nextText);
+        window.draw(selectButton);
         window.draw(selectText);
+        window.draw(backButton);
         window.draw(backText);
-        window.draw(leftline);
-        window.draw(rightline);
-        window.draw(box1);
-        window.draw(box2);
-        window.draw(box3);
-        window.draw(box4);
-        window.draw(scar1);
-        window.draw(scar2);
-        window.draw(scar3);
-        window.draw(scar4);
         window.display();
-
     }
     return -1;
 }

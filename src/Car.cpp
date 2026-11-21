@@ -1,26 +1,64 @@
+
 #include "Car.h"
 
 #include <algorithm>
 #include <cmath>
 #include <string>
 
+namespace {
+sf::IntRect visibleBounds(const sf::Image& image) {
+  const auto size = image.getSize();
+  sf::Vector2u topLeft = size;
+  sf::Vector2u bottomRight{};
+  for (unsigned int y = 0; y < size.y; ++y) {
+    for (unsigned int x = 0; x < size.x; ++x) {
+      if (image.getPixel({x, y}).a > 16) {
+        topLeft.x = std::min(topLeft.x, x);
+        topLeft.y = std::min(topLeft.y, y);
+        bottomRight.x = std::max(bottomRight.x, x + 1);
+        bottomRight.y = std::max(bottomRight.y, y + 1);
+      }
+    }
+  }
+  if (bottomRight.x == 0) {
+    return {};
+  }
+  return {sf::Vector2i(topLeft), sf::Vector2i(bottomRight - topLeft)};
+}
+}  // namespace
+
 Car::Car() : carsprite(carTexture) {}
 
 bool Car::load(int selectedCar) {
   const bool hasSelection = selectedCar >= 0 && selectedCar < 4;
-  const std::string texturePath = hasSelection
-      ? "assets/cars/selection/car" + std::to_string(selectedCar + 1) + ".png"
-      : "assets/cars/Car1.png";
-  if (!carTexture.loadFromFile(texturePath)) {
+  const std::string texturePath =
+      hasSelection ? "assets/cars/selection/car" +
+                         std::to_string(selectedCar + 1) + ".png"
+                   : "assets/cars/selection/car1.png";
+  float scale = 0.12f;
+  if (hasSelection) {
+    sf::Image image;
+    if (!image.loadFromFile(texturePath)) {
+      return false;
+    }
+    const auto bounds = visibleBounds(image);
+    if (bounds.size.y == 0 || !carTexture.loadFromImage(image, false, bounds)) {
+      return false;
+    }
+    // All selected cars use the same visible length in track coordinates.
+    constexpr float trackCarLength = 120.0f;
+    scale = trackCarLength / bounds.size.y;
+    carTexture.setSmooth(true);
+  } else if (!carTexture.loadFromFile(texturePath)) {
     return false;
+  } else {
+    carTexture.setSmooth(false);
   }
   if (!Track_Mask.loadFromFile("assets/track/Track_Mask.png")) {
     return false;
   }
 
   carsprite.setTexture(carTexture, true);
-  // Both sets of sprites show a car about 120 pixels long at these scales.
-  const float scale = hasSelection ? 0.27f : 0.12f;
   carsprite.setScale({scale, scale});
   sf::FloatRect carBounds = carsprite.getLocalBounds();
 
@@ -31,12 +69,13 @@ bool Car::load(int selectedCar) {
 
   return true;
 }
-void Car::update(float deltaTime) {
+
+void Car::update(float deltaTime, const CarControls& controls) {
   if (sf::Keyboard::isKeyPressed(
-          sf::Keyboard::Key::S)) {  //  We use max here to have the max speed at
-                                    //  0
+          controls.brake)) {  //  We use max here to have the max speed at
+                              //  0
     speed = std::max(0.0f, speed - braking * deltaTime);
-  } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
+  } else if (sf::Keyboard::isKeyPressed(controls.accelerate)) {
     speed = std::min(
         max_speed,
         speed + acceleration * deltaTime);  // We ise min because we want the
@@ -48,11 +87,11 @@ void Car::update(float deltaTime) {
   }  // We use max beacuse we want to stop it not to reverse it
 
   if (speed > 0.0f) {
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+    if (sf::Keyboard::isKeyPressed(controls.left)) {
       carsprite.rotate(sf::degrees(-turn_speed * deltaTime));
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+    if (sf::Keyboard::isKeyPressed(controls.right)) {
       carsprite.rotate(sf::degrees(turn_speed * deltaTime));
     }
   }
@@ -103,6 +142,9 @@ void Car::update(float deltaTime) {
     }
   }
 }
+
+void Car::setPosition(sf::Vector2f position) { carsprite.setPosition(position); }
+
 sf::Vector2f Car::getPosition() const { return carsprite.getPosition(); }
 
 const sf::Sprite& Car::getSprite() const { return carsprite; }

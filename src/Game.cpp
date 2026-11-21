@@ -27,13 +27,35 @@ int Game::run(int selectedCar) {
                                          // it stops the program.
     return 1;
   }
+
   sf::Sprite tracksprite(trackTexture);
   tracksprite.setScale(
       {1280.0f / trackTexture.getSize().x, 720.0f / trackTexture.getSize().y});
-  Car car;
-  if (!car.load(selectedCar)) {
+
+  Car player1;
+  Car player2;
+
+  if (!player1.load(selectedCar)) {
     return 1;
   }
+
+  const int player2Selection =
+      selectedCar >= 0 && selectedCar < 4 ? (selectedCar + 1) % 4 : 1;
+
+  if (!player2.load(player2Selection)) {
+    return 1;
+  }
+
+  player1.setPosition({500.0f, 530.0f});
+  player2.setPosition({500.0f, 590.0f});
+
+  CarControls player1Controls{sf::Keyboard::Key::W, sf::Keyboard::Key::S,
+                              sf::Keyboard::Key::A, sf::Keyboard::Key::D};
+
+  CarControls player2Controls{sf::Keyboard::Key::Up, sf::Keyboard::Key::Down,
+                              sf::Keyboard::Key::Left,
+                              sf::Keyboard::Key::Right};
+
   // Store checkpoint areas for collision detection
   const std::array<sf::FloatRect, 4> checkpointAreas = {{
       {{1050.f, 290.f}, {170.f, 35.f}},  // CP1 - Right
@@ -48,18 +70,30 @@ int Game::run(int selectedCar) {
        {checkpointAreas[1].position, checkpointAreas[1].size},
        {checkpointAreas[2].position, checkpointAreas[2].size},
        {checkpointAreas[3].position, checkpointAreas[3].size}}};
-  std::size_t nextCheckpoint = 0;
-
-  std::array<bool, 4> wasInsideCheckpoint = {false, false, false, false};
 
   constexpr unsigned int totalLaps = 3;
-  unsigned int completedLaps = 0;
+
+  struct PlayerProgress {
+    std::size_t nextCheckpoint = 0;
+    std::array<bool, 4> wasInsideCheckpoint = {false, false, false, false};
+    unsigned int completedLaps = 0;
+    bool wasInsideFinishLine = false;
+  };
+
+  PlayerProgress progress1;
+  PlayerProgress progress2;
+
   bool raceFinished = false;
+  int winner = 0;
 
   // finish-line zone.
   const sf::FloatRect finishLineArea{{620.f, 535.f}, {40.f, 130.f}};
 
-  bool wasInsideFinishLine = finishLineArea.contains(car.getPosition());
+  progress1.wasInsideFinishLine =
+      finishLineArea.contains(player1.getPosition());
+
+  progress2.wasInsideFinishLine =
+      finishLineArea.contains(player2.getPosition());
 
   // Load font
   sf::Font font;
@@ -69,24 +103,45 @@ int Game::run(int selectedCar) {
     return 1;
   }
 
-  // Checkpoint counter
-  sf::Text checkpointCounter(font, "Checkpoints: 0/4", 26);
-  checkpointCounter.setPosition({20.f, 20.f});
-  checkpointCounter.setFillColor(sf::Color::White);
-  checkpointCounter.setOutlineColor(sf::Color::Black);
-  checkpointCounter.setOutlineThickness(2.f);
+  const sf::Color hudAccent(224, 5, 12);
+  const sf::Color hudMuted(185, 190, 199);
 
-  // Checkpoint message
-  sf::Text checkpointMessage(font, "Reach checkpoint 1", 22);
-  checkpointMessage.setPosition({20.f, 60.f});
-  checkpointMessage.setFillColor(sf::Color::Yellow);
-  checkpointMessage.setOutlineColor(sf::Color::Black);
-  checkpointMessage.setOutlineThickness(2.f);
-  sf::Text lapCounter(font, "Lap: 1/3", 26);
-  lapCounter.setPosition({20.f, 100.f});
-  lapCounter.setFillColor(sf::Color::White);
-  lapCounter.setOutlineColor(sf::Color::Black);
-  lapCounter.setOutlineThickness(2.f);
+  sf::RectangleShape progressPanel({304.f, 103.f});
+  progressPanel.setFillColor(sf::Color(16, 18, 22, 235));
+  progressPanel.setOutlineColor(sf::Color(105, 109, 118));
+  progressPanel.setOutlineThickness(-1.f);
+
+  sf::RectangleShape progressAccent({304.f, 3.f});
+  progressAccent.setFillColor(hudAccent);
+
+  sf::RectangleShape progressDivider({1.f, 45.f});
+  progressDivider.setFillColor(sf::Color(78, 82, 91));
+
+  sf::Text lapLabel(font, "LAP", 13);
+  lapLabel.setFillColor(hudMuted);
+  lapLabel.setStyle(sf::Text::Bold);
+
+  sf::Text checkpointLabel(font, "CHECKPOINTS", 13);
+  checkpointLabel.setFillColor(hudMuted);
+  checkpointLabel.setStyle(sf::Text::Bold);
+
+  sf::Text lapCounter(font, "", 28);
+  lapCounter.setStyle(sf::Text::Bold);
+
+  sf::Text checkpointCounter(font, "", 28);
+  checkpointCounter.setStyle(sf::Text::Bold);
+
+  std::array<sf::RectangleShape, 4> checkpointSegments;
+
+  for (auto& segment : checkpointSegments) {
+    segment.setSize({23.f, 5.f});
+  }
+
+  sf::Text checkpointMessage(font, "", 17);
+  checkpointMessage.setFillColor(hudMuted);
+
+  sf::Text playerLabel(font, "", 16);
+  playerLabel.setStyle(sf::Text::Bold);
 
   sf::Text timerText(font, "Time: 0.00 s", 26);
   timerText.setPosition({20.f, 140.f});
@@ -94,14 +149,119 @@ int Game::run(int selectedCar) {
   timerText.setOutlineColor(sf::Color::Black);
   timerText.setOutlineThickness(2.f);
 
+  sf::Text winnerText(font, "", 48);
+  winnerText.setFillColor(sf::Color::White);
+  winnerText.setOutlineColor(sf::Color::Black);
+  winnerText.setOutlineThickness(3.f);
+
   // Show checkpoint rectangles for testing
-  constexpr bool showDebugCheckpoints = true;
+  constexpr bool showDebugCheckpoints = false;
 
   sf::Clock raceClock;
 
   sf::Clock
       frameClock;  // It is kind of a stopwatch.              / Thing is we use
                    // this clock to measure the time from 1 frame to another  /
+
+  auto updateProgress = [&](Car& car, PlayerProgress& progress,
+                            int playerNumber) {
+    // Check if the car enters a checkpoint
+    for (std::size_t i = 0; i < checkpoints.size(); i++) {
+      bool isInsideCheckpoint = checkpoints[i].contains(car.getPosition());
+
+      if (!raceFinished && isInsideCheckpoint &&
+          !progress.wasInsideCheckpoint[i] && i == progress.nextCheckpoint) {
+        progress.nextCheckpoint++;
+
+        std::cout << "Player " << playerNumber << " Checkpoint "
+                  << progress.nextCheckpoint << " reached!" << std::endl;
+      }
+
+      progress.wasInsideCheckpoint[i] = isInsideCheckpoint;
+    }
+
+    const bool isInsideFinishLine = finishLineArea.contains(car.getPosition());
+
+    if (!raceFinished && isInsideFinishLine && !progress.wasInsideFinishLine &&
+        progress.nextCheckpoint == checkpoints.size()) {
+      ++progress.completedLaps;
+
+      std::cout << "Player " << playerNumber << " Lap "
+                << progress.completedLaps << " completed!" << std::endl;
+
+      if (progress.completedLaps == totalLaps) {
+        raceFinished = true;
+        winner = playerNumber;
+      } else {
+        progress.nextCheckpoint = 0;
+      }
+    }
+
+    progress.wasInsideFinishLine = isInsideFinishLine;
+  };
+
+  auto drawProgress = [&](const PlayerProgress& progress, int playerNumber,
+                          float panelX) {
+    progressPanel.setPosition({panelX, 16.f});
+    progressAccent.setPosition({panelX, 16.f});
+    progressDivider.setPosition({panelX + 93.f, 42.f});
+
+    lapLabel.setPosition({panelX + 13.f, 43.f});
+    checkpointLabel.setPosition({panelX + 108.f, 43.f});
+
+    lapCounter.setPosition({panelX + 13.f, 59.f});
+    checkpointCounter.setPosition({panelX + 108.f, 59.f});
+
+    const auto currentLap = std::min(progress.completedLaps + 1, totalLaps);
+
+    lapCounter.setString(std::to_string(currentLap) + "/" +
+                         std::to_string(totalLaps));
+
+    checkpointCounter.setString(std::to_string(progress.nextCheckpoint) + "/" +
+                                std::to_string(checkpoints.size()));
+
+    playerLabel.setString("PLAYER " + std::to_string(playerNumber));
+    playerLabel.setPosition({panelX + 13.f, 20.f});
+
+    if (playerNumber == 1) {
+      playerLabel.setFillColor(hudAccent);
+    } else {
+      playerLabel.setFillColor(sf::Color(70, 160, 255));
+    }
+
+    if (raceFinished && winner == playerNumber) {
+      checkpointMessage.setString("Race finished");
+    } else if (progress.nextCheckpoint == checkpoints.size()) {
+      checkpointMessage.setString("Cross the finish line");
+    } else {
+      checkpointMessage.setString("Reach checkpoint " +
+                                  std::to_string(progress.nextCheckpoint + 1));
+    }
+
+    checkpointMessage.setPosition({panelX + 13.f, 96.f});
+
+    window.draw(progressPanel);
+    window.draw(progressAccent);
+    window.draw(progressDivider);
+    window.draw(playerLabel);
+    window.draw(lapLabel);
+    window.draw(lapCounter);
+    window.draw(checkpointLabel);
+    window.draw(checkpointCounter);
+
+    for (std::size_t i = 0; i < checkpointSegments.size(); ++i) {
+      auto& segment = checkpointSegments[i];
+
+      segment.setPosition({panelX + 179.f + 27.f * i, 74.f});
+
+      segment.setFillColor(i < progress.nextCheckpoint ? hudAccent
+                                                       : sf::Color(78, 82, 91));
+
+      window.draw(segment);
+    }
+
+    window.draw(checkpointMessage);
+  };
 
   // Main Game Loop
   while (window.isOpen()) {
@@ -112,6 +272,7 @@ int Game::run(int selectedCar) {
         frameClock.restart().asSeconds(),
         0.05f);  // We use min here to have the minimum delta time
                  // if the frame second gets higher, it only takes 0.05f
+
     while (const std::optional event = window.pollEvent()) {
       if (event->is<sf::Event::Closed>()) {  // Close the Window if X is
                                              // pressed.
@@ -119,7 +280,6 @@ int Game::run(int selectedCar) {
       }
     }
 
-    car.update(deltaTime);
     if (!raceFinished) {
       const float elapsedSeconds = raceClock.getElapsedTime().asSeconds();
 
@@ -129,66 +289,14 @@ int Game::run(int selectedCar) {
 
       timerText.setString(timerStream.str());
 
-      car.update(deltaTime);
-    }
+      player1.update(deltaTime, player1Controls);
+      player2.update(deltaTime, player2Controls);
 
-    // Check if the car enters a checkpoint
-    for (std::size_t i = 0; i < checkpoints.size(); i++) {
-      bool isInsideCheckpoint = checkpoints[i].contains(car.getPosition());
-
-      if (!raceFinished && isInsideCheckpoint && !wasInsideCheckpoint[i] &&
-          i == nextCheckpoint) {
-        nextCheckpoint++;
-
-        std::cout << "Checkpoint " << nextCheckpoint << " reached!"
-                  << std::endl;
-
-        // Update the checkpoint counter
-        checkpointCounter.setString(
-            "Checkpoints: " + std::to_string(nextCheckpoint) + "/4");
-
-        // Update checkpoint message
-        checkpointMessage.setString(
-            "Checkpoint " + std::to_string(nextCheckpoint) + " reached!");
-
-        if (nextCheckpoint == checkpoints.size()) {
-          if (completedLaps + 1 == totalLaps) {
-            checkpointMessage.setString(
-                "All checkpoints reached! Cross the finish line.");
-          } else {
-            checkpointMessage.setString("Checkpoint 4 reached!");
-          }
-        }
-      }
-
-      wasInsideCheckpoint[i] = isInsideCheckpoint;
-    }
-    const bool isInsideFinishLine = finishLineArea.contains(car.getPosition());
-
-    if (!raceFinished && isInsideFinishLine && !wasInsideFinishLine &&
-        nextCheckpoint == checkpoints.size()) {
-      ++completedLaps;
-
-      std::cout << "Lap " << completedLaps << " completed!" << std::endl;
-
-      if (completedLaps == totalLaps) {
-        raceFinished = true;
-
-        lapCounter.setString("Laps completed: 3/3");
-        checkpointMessage.setString("Race finished! All 3 laps completed.");
-      } else {
-        nextCheckpoint = 0;
-
-        checkpointCounter.setString("Checkpoints: 0/4");
-
-        lapCounter.setString("Lap: " + std::to_string(completedLaps + 1) +
-                             "/3");
-
-        checkpointMessage.setString("Reach checkpoint 1");
+      updateProgress(player1, progress1, 1);
+      if (!raceFinished) {
+        updateProgress(player2, progress2, 2);
       }
     }
-
-    wasInsideFinishLine = isInsideFinishLine;
 
     window.clear();  // It clears the previous frame
     window.draw(tracksprite);
@@ -205,6 +313,7 @@ int Game::run(int selectedCar) {
         window.draw(shape);
       }
     }
+
     if (showDebugCheckpoints) {
       sf::RectangleShape finishShape(finishLineArea.size);
 
@@ -216,13 +325,27 @@ int Game::run(int selectedCar) {
       window.draw(finishShape);
     }
 
-    window.draw(car.getSprite());
+    window.draw(player1.getSprite());
+    window.draw(player2.getSprite());
 
-    // Draw checkpoint information
-    window.draw(checkpointCounter);
-    window.draw(checkpointMessage);
-    window.draw(lapCounter);
+    drawProgress(progress1, 1, 18.f);
+    drawProgress(progress2, 2, 958.f);
+
     window.draw(timerText);
+
+    if (raceFinished) {
+      winnerText.setString("PLAYER " + std::to_string(winner) + " WINS!");
+
+      const sf::FloatRect bounds = winnerText.getLocalBounds();
+
+      winnerText.setOrigin({bounds.position.x + bounds.size.x / 2.f,
+                            bounds.position.y + bounds.size.y / 2.f});
+
+      winnerText.setPosition({640.f, 360.f});
+
+      window.draw(winnerText);
+    }
+
     window.display();  // Shows the new frame
   }
 
