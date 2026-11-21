@@ -10,6 +10,7 @@
 #include <string>
 
 #include "Car.h"
+#include "Scores.h"
 #include "checkpoint.h"
 
 int Game::run(int selectedCar) {
@@ -46,8 +47,10 @@ int Game::run(int selectedCar) {
     return 1;
   }
 
-  player1.setPosition({500.0f, 530.0f});
-  player2.setPosition({500.0f, 590.0f});
+  // Align both cars with the painted grid rows behind the start line.
+  constexpr float startingGridX = 555.0f;
+  player1.setPosition({startingGridX, 565.0f});
+  player2.setPosition({startingGridX, 623.0f});
 
   CarControls player1Controls{sf::Keyboard::Key::W, sf::Keyboard::Key::S,
                               sf::Keyboard::Key::A, sf::Keyboard::Key::D};
@@ -192,6 +195,9 @@ int Game::run(int selectedCar) {
       if (progress.completedLaps == totalLaps) {
         raceFinished = true;
         winner = playerNumber;
+        if (!saveRaceTime(raceClock.getElapsedTime().asSeconds())) {
+          std::cerr << "Could not save the race time to data/scores.txt.\n";
+        }
       } else {
         progress.nextCheckpoint = 0;
       }
@@ -280,7 +286,7 @@ int Game::run(int selectedCar) {
       }
     }
 
-    if (!raceFinished) {
+    if (window.isOpen() && !raceFinished) {
       const float elapsedSeconds = raceClock.getElapsedTime().asSeconds();
 
       std::ostringstream timerStream;

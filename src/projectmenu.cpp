@@ -3,7 +3,10 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 
+#include <sstream>
+
 #include "Game.h"
+#include "Scores.h"
 
 int runMenu() {
   sf::Texture background;
@@ -70,11 +73,11 @@ int runMenu() {
   const auto recordsTitle = makeText("SHOW RECORDS", 18, {32, 384});
   const auto exitTitle = makeText("EXIT", 20, {32, 447});
   const auto recordHeading = makeText("RECORDS OF PLAYERS", 26, {320, 175});
-  const auto highScore =
-      makeText("HIGHEST SCORE :    ", 22, {300, 245}, sf::Color(255, 200, 0));
-  const auto currentScore = makeText("CURRENT SCORE :    ", 22, {300, 295});
-  const auto lowScore =
-      makeText("LOWEST SCORE :     ", 22, {300, 345}, sf::Color(175, 175, 180));
+  auto highScore =
+      makeText("", 22, {300, 245}, sf::Color(255, 200, 0));
+  auto currentScore = makeText("", 22, {300, 295});
+  auto lowScore =
+      makeText("", 22, {300, 345}, sf::Color(175, 175, 180));
   const auto backTitle = makeText("BACK TO MENU", 18, {395, 447});
 
   bool showingRecords = false;
@@ -124,6 +127,19 @@ int runMenu() {
         menu.setVisible(true);
         menu.requestFocus();
       } else if (recordsBox.getGlobalBounds().contains(mousePosition)) {
+        double scores[ScoreCount]{};
+        const bool hasRecord = loadScores(scores);
+        const auto formatTime = [hasRecord](double seconds) {
+          if (!hasRecord) {
+            return std::string("No race yet");
+          }
+          std::ostringstream text;
+          text << std::fixed << std::setprecision(2) << seconds << " s";
+          return text.str();
+        };
+        highScore.setString("HIGHEST SCORE  " + formatTime(scores[Highest]));
+        currentScore.setString("CURRENT SCORE  " + formatTime(scores[Current]));
+        lowScore.setString("LOWEST SCORE  " + formatTime(scores[Lowest]));
         showingRecords = true;
       } else if (exitBox.getGlobalBounds().contains(mousePosition)) {
         return 0;

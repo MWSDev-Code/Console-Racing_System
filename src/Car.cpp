@@ -30,30 +30,22 @@ sf::IntRect visibleBounds(const sf::Image& image) {
 Car::Car() : carsprite(carTexture) {}
 
 bool Car::load(int selectedCar) {
-  const bool hasSelection = selectedCar >= 0 && selectedCar < 4;
+  const int carIndex = selectedCar >= 0 && selectedCar < 4 ? selectedCar : 0;
   const std::string texturePath =
-      hasSelection ? "assets/cars/selection/car" +
-                         std::to_string(selectedCar + 1) + ".png"
-                   : "assets/cars/selection/car1.png";
-  float scale = 0.12f;
-  if (hasSelection) {
-    sf::Image image;
-    if (!image.loadFromFile(texturePath)) {
-      return false;
-    }
-    const auto bounds = visibleBounds(image);
-    if (bounds.size.y == 0 || !carTexture.loadFromImage(image, false, bounds)) {
-      return false;
-    }
-    // All selected cars use the same visible length in track coordinates.
-    constexpr float trackCarLength = 120.0f;
-    scale = trackCarLength / bounds.size.y;
-    carTexture.setSmooth(true);
-  } else if (!carTexture.loadFromFile(texturePath)) {
+      "assets/cars/selection/car" + std::to_string(carIndex + 1) + ".png";
+  sf::Image image;
+  if (!image.loadFromFile(texturePath)) {
     return false;
-  } else {
-    carTexture.setSmooth(false);
   }
+  const auto bounds = visibleBounds(image);
+  if (bounds.size.y == 0 || !carTexture.loadFromImage(image, false, bounds)) {
+    return false;
+  }
+  constexpr float redCarLength = 85.0f;
+  constexpr float trackCarLength = 90.0f;
+  const float scale =
+      (carIndex == 0 ? redCarLength : trackCarLength) / bounds.size.y;
+  carTexture.setSmooth(true);
   if (!Track_Mask.loadFromFile("assets/track/Track_Mask.png")) {
     return false;
   }
@@ -143,7 +135,9 @@ void Car::update(float deltaTime, const CarControls& controls) {
   }
 }
 
-void Car::setPosition(sf::Vector2f position) { carsprite.setPosition(position); }
+void Car::setPosition(sf::Vector2f position) {
+  carsprite.setPosition(position);
+}
 
 sf::Vector2f Car::getPosition() const { return carsprite.getPosition(); }
 
