@@ -1,4 +1,3 @@
-
 #include "Game.h"
 #include <algorithm>
 #include <array>
@@ -9,7 +8,6 @@
 #include "Car.h"
 #include "Scores.h"
 #include "checkpoint.h"
-
 int Game::run(int selectedCar) {
   sf::RenderWindow window(
       sf::VideoMode({1280, 720}), "Console Racing");
