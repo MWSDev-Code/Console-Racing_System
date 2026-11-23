@@ -7,7 +7,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-
 #include "Car.h"
 #include "Scores.h"
 #include "checkpoint.h"
