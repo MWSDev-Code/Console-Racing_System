@@ -5,7 +5,6 @@
 #include <array>
 #include <iostream>
 #include <string>
-
 namespace
 {
 void centerText(sf::Text& text, sf::Vector2f position)
