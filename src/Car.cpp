@@ -1,6 +1,5 @@
 
 #include "Car.h"
-
 #include <algorithm>
 #include <cmath>
 #include <string>
