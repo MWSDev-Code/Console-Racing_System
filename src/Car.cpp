@@ -43,7 +43,6 @@ sf::IntRect visibleBounds(
 Car::Car()
     : carsprite(carTexture) {
 }  // texture makes the iamge editable to move an resize
-
 bool Car::load(int selectedCar) {  // This loads the car
   int carIndex;
 
