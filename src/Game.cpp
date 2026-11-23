@@ -1,6 +1,5 @@
 
 #include "Game.h"
-
 #include <algorithm>
 #include <array>
 #include <iomanip>
