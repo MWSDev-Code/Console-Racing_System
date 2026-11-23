@@ -6,6 +6,38 @@
 #include <string>
 
 namespace {
+bool isOnTrack(const sf::Image& trackMask, const sf::Sprite& car) {
+  const auto maskSize = trackMask.getSize();
+  const sf::FloatRect bounds = car.getLocalBounds();
+  const sf::Transform transform = car.getTransform();
+  const sf::Vector2f samplePoints[5] = {
+      transform.transformPoint(bounds.position + bounds.size / 2.0f),
+      transform.transformPoint(bounds.position + bounds.size * 0.2f),
+      transform.transformPoint(bounds.position +
+                               sf::Vector2f(bounds.size.x * 0.8f,
+                                            bounds.size.y * 0.2f)),
+      transform.transformPoint(bounds.position +
+                               sf::Vector2f(bounds.size.x * 0.2f,
+                                            bounds.size.y * 0.8f)),
+      transform.transformPoint(bounds.position + bounds.size * 0.8f)};
+
+  for (int i = 0; i < 5; ++i) {
+    if (samplePoints[i].x < 0.0f || samplePoints[i].y < 0.0f ||
+        samplePoints[i].x >= 1280.0f || samplePoints[i].y >= 720.0f) {
+      return false;
+    }
+
+    const unsigned int maskX =
+        static_cast<unsigned int>(samplePoints[i].x * maskSize.x / 1280.0f);
+    const unsigned int maskY =
+        static_cast<unsigned int>(samplePoints[i].y * maskSize.y / 720.0f);
+    if (trackMask.getPixel({maskX, maskY}).r < 128) {
+      return false;
+    }
+  }
+  return true;
+}
+
 sf::IntRect visibleBounds(const sf::Image& image) {
   const auto size = image.getSize();
   sf::Vector2u topLeft = size;
@@ -63,20 +95,20 @@ bool Car::load(int selectedCar) {
 }
 
 void Car::update(float deltaTime, const CarControls& controls) {
-  if (sf::Keyboard::isKeyPressed(
-          controls.brake)) {  //  We use max here to have the max speed at
-                              //  0
+  if (!active) {
+    return;
+  }
+
+  if (sf::Keyboard::isKeyPressed(controls.brake)) {
     speed = std::max(0.0f, speed - braking * deltaTime);
   } else if (sf::Keyboard::isKeyPressed(controls.accelerate)) {
     speed = std::min(
         max_speed,
-        speed + acceleration * deltaTime);  // We ise min because we want the
-                                            // maximum speed is 450f.
+        speed + acceleration * deltaTime);
   } else {
     speed = std::max(
-        0.0f, speed - drag * deltaTime);  // IF neither is pressed, the car
-                                          // speed gradually decreases
-  }  // We use max beacuse we want to stop it not to reverse it
+        0.0f, speed - drag * deltaTime);
+  }
 
   if (speed > 0.0f) {
     if (sf::Keyboard::isKeyPressed(controls.left)) {
@@ -88,50 +120,26 @@ void Car::update(float deltaTime, const CarControls& controls) {
     }
   }
 
-  float angle = carsprite.getRotation().asRadians() - 3.14159265f / 2.0f;
+  const sf::Vector2f oldPosition = carsprite.getPosition();
+  const float angle = carsprite.getRotation().asRadians() - 3.14159265f / 2.0f;
 
   float moveX = std::cos(angle) * speed * deltaTime;
   float moveY = std::sin(angle) * speed * deltaTime;
 
   carsprite.move({moveX, moveY});
 
-  sf::FloatRect bounds = carsprite.getGlobalBounds();
-
-  if (bounds.position.x < 0.0f) {
-    carsprite.move({-bounds.position.x, 0.0f});
-  }
-
-  if (bounds.position.y < 0.0f) {
-    carsprite.move({0.0f, -bounds.position.y});
-  }
-
-  if (bounds.position.x + bounds.size.x > 1280.0f) {
-    float extra = bounds.position.x + bounds.size.x - 1280.0f;
-
-    carsprite.move({-extra, 0.0f});
-  }
-
-  if (bounds.position.y + bounds.size.y > 720.0f) {
-    float extra = bounds.position.y + bounds.size.y - 720.0f;
-
-    carsprite.move({0.0f, -extra});
-  }
-  sf::Vector2f carPosition = carsprite.getPosition();
-
-  sf::Vector2u maskSize = Track_Mask.getSize();
-
-  unsigned int maskX =
-      static_cast<unsigned int>(carPosition.x * maskSize.x / 1280.0f);
-
-  unsigned int maskY =
-      static_cast<unsigned int>(carPosition.y * maskSize.y / 720.0f);
-
-  if (maskX < maskSize.x && maskY < maskSize.y) {
-    sf::Color pixel = Track_Mask.getPixel({maskX, maskY});
-
-    if (pixel.r < 128) {
-      speed = std::min(speed, 40.0f);
+  if (!isOnTrack(Track_Mask, carsprite)) {
+    carsprite.setPosition(oldPosition);
+    speed = 0.0f;
+    if (!offTrack) {
+      --lives;
+      offTrack = true;
+      if (lives == 0) {
+        active = false;
+      }
     }
+  } else {
+    offTrack = false;
   }
 }
 
@@ -139,6 +147,12 @@ void Car::setPosition(sf::Vector2f position) {
   carsprite.setPosition(position);
 }
 
+void Car::setRotation(sf::Angle rotation) { carsprite.setRotation(rotation); }
+
 sf::Vector2f Car::getPosition() const { return carsprite.getPosition(); }
 
 const sf::Sprite& Car::getSprite() const { return carsprite; }
+
+int Car::getLives() const { return lives; }
+
+bool Car::isActive() const { return active; }

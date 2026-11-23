@@ -5,7 +5,6 @@
 #include <array>
 #include <iomanip>
 #include <iostream>
-#include <optional>
 #include <sstream>
 #include <string>
 
@@ -15,17 +14,11 @@
 
 int Game::run(int selectedCar) {
   sf::RenderWindow window(
-      sf::VideoMode({1280, 720}),
-      "Console Racing");  // This means add a SFML window of this size
+      sf::VideoMode({1280, 720}), "Console Racing");
 
-  sf::Texture
-      trackTexture;  // Create a texture for thetrack image kind of a variable
-                     // to hold the image in the program for every frame.
+  sf::Texture trackTexture;
 
-  if (!trackTexture.loadFromFile(
-          "assets/track/Track1.png")) {  // It loads the track image from the
-                                         // folder and also if there is a issue
-                                         // it stops the program.
+  if (!trackTexture.loadFromFile("assets/track/Track1.png")) {
     return 1;
   }
 
@@ -59,7 +52,6 @@ int Game::run(int selectedCar) {
                               sf::Keyboard::Key::Left,
                               sf::Keyboard::Key::Right};
 
-  // Store checkpoint areas for collision detection
   const std::array<sf::FloatRect, 4> checkpointAreas = {{
       {{1050.f, 290.f}, {170.f, 35.f}},  // CP1 - Right
       {{1080.f, 50.f}, {35.f, 145.f}},   // CP2 - Top right
@@ -67,7 +59,6 @@ int Game::run(int selectedCar) {
       {{45.f, 300.f}, {160.f, 35.f}}     // CP4 - Left
   }};
 
-  // Create the four checkpoints
   std::array<Checkpoint, 4> checkpoints = {
       {{checkpointAreas[0].position, checkpointAreas[0].size},
        {checkpointAreas[1].position, checkpointAreas[1].size},
@@ -89,7 +80,6 @@ int Game::run(int selectedCar) {
   bool raceFinished = false;
   int winner = 0;
 
-  // finish-line zone.
   const sf::FloatRect finishLineArea{{620.f, 535.f}, {40.f, 130.f}};
 
   progress1.wasInsideFinishLine =
@@ -109,7 +99,7 @@ int Game::run(int selectedCar) {
   const sf::Color hudAccent(224, 5, 12);
   const sf::Color hudMuted(185, 190, 199);
 
-  sf::RectangleShape progressPanel({304.f, 103.f});
+  sf::RectangleShape progressPanel({304.f, 132.f});
   progressPanel.setFillColor(sf::Color(16, 18, 22, 235));
   progressPanel.setOutlineColor(sf::Color(105, 109, 118));
   progressPanel.setOutlineThickness(-1.f);
@@ -147,24 +137,20 @@ int Game::run(int selectedCar) {
   playerLabel.setStyle(sf::Text::Bold);
 
   sf::Text timerText(font, "Time: 0.00 s", 26);
-  timerText.setPosition({20.f, 140.f});
+  timerText.setPosition({20.f, 164.f});
   timerText.setFillColor(sf::Color::White);
   timerText.setOutlineColor(sf::Color::Black);
   timerText.setOutlineThickness(2.f);
 
-  sf::Text winnerText(font, "", 48);
-  winnerText.setFillColor(sf::Color::White);
-  winnerText.setOutlineColor(sf::Color::Black);
-  winnerText.setOutlineThickness(3.f);
+  sf::Text livesText(font, "", 18);
+  livesText.setFillColor(sf::Color::White);
+  livesText.setStyle(sf::Text::Bold);
 
-  // Show checkpoint rectangles for testing
   constexpr bool showDebugCheckpoints = false;
 
   sf::Clock raceClock;
 
-  sf::Clock
-      frameClock;  // It is kind of a stopwatch.              / Thing is we use
-                   // this clock to measure the time from 1 frame to another  /
+  sf::Clock frameClock;
 
   auto updateProgress = [&](Car& car, PlayerProgress& progress,
                             int playerNumber) {
@@ -245,6 +231,9 @@ int Game::run(int selectedCar) {
     }
 
     checkpointMessage.setPosition({panelX + 13.f, 96.f});
+    livesText.setString("LIVES: " + std::to_string(
+        playerNumber == 1 ? player1.getLives() : player2.getLives()));
+    livesText.setPosition({panelX + 13.f, 119.f});
 
     window.draw(progressPanel);
     window.draw(progressAccent);
@@ -267,21 +256,15 @@ int Game::run(int selectedCar) {
     }
 
     window.draw(checkpointMessage);
+    window.draw(livesText);
   };
 
-  // Main Game Loop
   while (window.isOpen()) {
-    // Limit long frames so a pause does not cause a large movement jump. Delta
-    // is actually the frame to frame time in seconds       We could also have
-    // use setframe limit but this approcah is better
     const float deltaTime = std::min(
-        frameClock.restart().asSeconds(),
-        0.05f);  // We use min here to have the minimum delta time
-                 // if the frame second gets higher, it only takes 0.05f
+        frameClock.restart().asSeconds(), 0.05f);
 
-    while (const std::optional event = window.pollEvent()) {
-      if (event->is<sf::Event::Closed>()) {  // Close the Window if X is
-                                             // pressed.
+    while (const auto event = window.pollEvent()) {
+      if (event->is<sf::Event::Closed>()) {
         window.close();
       }
     }
@@ -295,16 +278,37 @@ int Game::run(int selectedCar) {
 
       timerText.setString(timerStream.str());
 
+      const sf::Vector2f player1OldPosition = player1.getPosition();
+      const sf::Vector2f player2OldPosition = player2.getPosition();
+      const sf::Angle player1OldRotation = player1.getSprite().getRotation();
+      const sf::Angle player2OldRotation = player2.getSprite().getRotation();
       player1.update(deltaTime, player1Controls);
       player2.update(deltaTime, player2Controls);
 
-      updateProgress(player1, progress1, 1);
+      if (player1.getSprite().getGlobalBounds().findIntersection(
+              player2.getSprite().getGlobalBounds())) {
+        player1.setPosition(player1OldPosition);
+        player2.setPosition(player2OldPosition);
+        player1.setRotation(player1OldRotation);
+        player2.setRotation(player2OldRotation);
+      }
+
+      if (!player1.isActive() || !player2.isActive()) {
+        raceFinished = true;
+        winner = player1.isActive() ? 1 : 2;
+      }
+
+      if (!raceFinished && player1.isActive()) {
+        updateProgress(player1, progress1, 1);
+      }
       if (!raceFinished) {
-        updateProgress(player2, progress2, 2);
+        if (player2.isActive()) {
+          updateProgress(player2, progress2, 2);
+        }
       }
     }
 
-    window.clear();  // It clears the previous frame
+    window.clear();
     window.draw(tracksprite);
 
     // Draw checkpoint rectangles for testing
@@ -339,20 +343,34 @@ int Game::run(int selectedCar) {
 
     window.draw(timerText);
 
+    window.display();
     if (raceFinished) {
-      winnerText.setString("PLAYER " + std::to_string(winner) + " WINS!");
-
-      const sf::FloatRect bounds = winnerText.getLocalBounds();
-
-      winnerText.setOrigin({bounds.position.x + bounds.size.x / 2.f,
-                            bounds.position.y + bounds.size.y / 2.f});
-
-      winnerText.setPosition({640.f, 360.f});
-
-      window.draw(winnerText);
+      window.close();
     }
+  }
 
-    window.display();  // Shows the new frame
+  if (raceFinished) {
+    sf::RenderWindow resultWindow(sf::VideoMode({640, 360}), "Race Results");
+    sf::Text resultTitle(font, "PLAYER " + std::to_string(winner) + " WINS!", 42);
+    resultTitle.setStyle(sf::Text::Bold);
+    resultTitle.setFillColor(sf::Color::White);
+    resultTitle.setPosition({80.f, 105.f});
+
+    sf::Text closeMessage(font, "Close this window to return to the menu", 18);
+    closeMessage.setFillColor(hudMuted);
+    closeMessage.setPosition({95.f, 220.f});
+
+    while (resultWindow.isOpen()) {
+      while (const auto event = resultWindow.pollEvent()) {
+        if (event->is<sf::Event::Closed>()) {
+          resultWindow.close();
+        }
+      }
+      resultWindow.clear(sf::Color(22, 25, 32));
+      resultWindow.draw(resultTitle);
+      resultWindow.draw(closeMessage);
+      resultWindow.display();
+    }
   }
 
   return 0;

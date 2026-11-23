@@ -1,82 +1,73 @@
 # Console Racing System
 
-A local two-player 2D racing game written in C++17 with SFML 3. Two cars start side by side. Each driver must pass four checkpoints in order and cross the finish line to complete a lap. The first driver to complete three laps wins.
+A two-player racing game built with C++17 and SFML 3. Drive around the track, pass each checkpoint in order, and cross the start line to finish a lap. The first player to complete three laps wins. Each player starts with three lives. Leaving the road costs one life and returns the car to the last safe position. The race ends when a player runs out of lives.
 
-## Build and run on macOS
+## Build with CMake
 
-The project uses Clang and the SFML headers and libraries installed through Homebrew. If these tools are missing, install the Xcode Command Line Tools with `xcode-select --install` and install SFML with `brew install sfml`.
+The project needs CMake 3.28 or newer and Git. CMake uses an installed SFML 3 when available. Otherwise, it downloads and builds SFML 3.0.2 automatically.
 
-Open a terminal in the project folder, where `src/`, `include/`, `assets/`, and `data/` are located. Run these commands.
+### Windows
 
-```sh
-SFML_PREFIX="$(brew --prefix sfml)"
-clang++ -std=c++17 -Iinclude -I"$SFML_PREFIX/include" src/*.cpp \
-  -L"$SFML_PREFIX/lib" -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system \
-  -o game
-./game
+Open a Developer PowerShell in this folder and run:
+
+```powershell
+cmake -S . -B build
+cmake --build build --config Release
+build\Release\game.exe
 ```
 
-The compiler builds the C++ files in `src/`, finds the project headers in `include/`, links the SFML libraries, and writes the executable to `game`. Launch it from the project folder so it can find the assets and score file.
+### macOS with Homebrew
 
-In VS Code on Apple Silicon, run **Build Turbo Track** from **Terminal → Run Build Task**. With the Microsoft C/C++ extension installed, select **Debug Turbo Track** in **Run and Debug** and press **F5**. The included VS Code task uses the Apple Silicon Homebrew path `/opt/homebrew/opt/sfml`.
+```sh
+brew install cmake sfml
+cmake -S . -B build -DCMAKE_PREFIX_PATH="$(brew --prefix sfml)"
+cmake --build build --config Release
+./build/game
+```
+
+### Linux
+
+Install CMake and SFML 3 development packages from your distribution, then run:
+
+```sh
+cmake -S . -B build
+cmake --build build --config Release
+./build/game
+```
+
+Run the game from the build folder so it can find the copied `assets` and `data` folders. Race records are saved in `build/data/scores.txt`.
 
 ## How to play
 
-1. Click **Select Car** and choose Player 1’s car. Use **Previous**, **Next**, or a car thumbnail to browse, then click **Select Car** to confirm. Player 2 is assigned the next car in the list.
-2. Click **Start Race**. Pass all four checkpoints in order, then cross the start/finish line. Repeat for three laps.
-3. Use **Show Records** from the main menu to see the saved times. Use **Sound On/Off** to control the menu music.
+1. Choose **Select Car** to pick Player 1's car. Player 2 uses the next car in the list.
+2. Choose **Start Race** to begin.
+3. Pass the four checkpoints in order, then cross the finish line. Complete three laps to win.
+4. Stay on the road. Each player has three lives; leaving the track costs a life and puts the car back at its last safe position.
 
 | Action | Player 1 | Player 2 |
 | --- | --- | --- |
-| Accelerate | W | ↑ |
-| Brake | S | ↓ |
-| Steer left | A | ← |
-| Steer right | D | → |
+| Accelerate | W | Up arrow |
+| Brake | S | Down arrow |
+| Steer left | A | Left arrow |
+| Steer right | D | Right arrow |
 
-## Race records
+The cars stop before crossing the track boundary and are moved back if their paths would overlap. A separate results window announces the winner.
 
-The winning time is saved in [data/scores.txt](data/scores.txt) after each completed race. The times are in seconds with two decimal places.
+## Course concepts
 
-| Record | Meaning |
-| --- | --- |
-| Highest | Slowest winning time |
-| Lowest | Fastest winning time |
-| Current | Most recent winning time |
-
-The first completed race sets all three values. Later races always update **Current** and update **Highest** when the time is slower or **Lowest** when it is faster. An unfinished race leaves the records as they were.
-
-## C++ concepts used
-
-| Concept | How we used it |
-| --- | --- |
-| Variables and constants | Store car speed, elapsed time, checkpoint progress, and the number of laps required to win. |
-| Arithmetic and comparisons | Calculate movement from speed and elapsed frame time, check whether a car has completed three laps, and compare finish times. |
-| `if` and `else` | Handle acceleration, braking, and coasting. Initialize the first race record and check later times against the highest and lowest values. |
-| `while` and `for` loops | Keep the menu and race running, process window events, and go through the cars and checkpoints. |
-| One-dimensional arrays | Store the three records in one array. The car-selection screen and race also use fixed-size arrays for car choices and checkpoints. |
-| Functions and parameters | Split the work into functions for loading cars, updating movement, checking checkpoints, and saving records. |
-| Classes and structs | Use `Car` for a car’s sprite and movement, `Checkpoint` for checkpoint bounds, and `CarControls` to group each player’s keys. |
-| File handling | Use `ifstream` to read the records and `ofstream` to write them to the text file. |
-| Headers and source files | Declare shared types and functions in headers and organize the implementation by feature. |
-
-## What SFML does
-
-- **Graphics** draws the track, cars, menu, and race information. The game reads the track mask image to detect when a car is off the road and limit its speed.
-- **Window and input** open the game windows, handle mouse clicks in the menus, and read the two players’ driving keys.
-- **System** provides clocks for measuring frame time and the race timer.
-- **Audio** plays and pauses the menu music.
+The code uses the C++ fundamentals in the Programming Fundamentals course outline: variables, arithmetic, conditions, loops, fixed-size arrays, functions, and basic text-file input/output. SFML provides the window, graphics, keyboard input, and sound used by the game.
 
 ## Project files
 
 | Path | Purpose |
 | --- | --- |
-| [src/main.cpp](src/main.cpp) | Starts the main menu. |
-| [src/projectmenu.cpp](src/projectmenu.cpp) | Handles the main menu, sound toggle, and records screen. |
-| [src/CarSelection.cpp](src/CarSelection.cpp) | Displays the four car choices and confirms Player 1’s selection. |
-| [src/Game.cpp](src/Game.cpp) | Runs the race, sets the starting grid, tracks laps, and determines the winner. |
-| [src/Car.cpp](src/Car.cpp) and [include/Car.h](include/Car.h) | Load and position car sprites, define speed settings, and update driving and off-track behavior. |
-| [src/checkpoint.cpp](src/checkpoint.cpp) | Checks whether a car has entered a checkpoint area. |
-| [include/Scores.h](include/Scores.h) | Reads, updates, and saves the score array. |
-| [assets/](assets/) | Contains the car and track artwork, interface images, fonts, and music. |
-| [data/scores.txt](data/scores.txt) | Stores the highest, lowest, and most recent winning times. |
-| [.vscode/](.vscode/) | Contains the build task and debugger configuration. |
+| `CMakeLists.txt` | Builds the game with CMake and links SFML. |
+| `vcpkg.json` | Lists SFML for Windows dependency setup. |
+| `src/main.cpp` | Starts the main menu. |
+| `src/projectmenu.cpp` | Displays the main menu, music control, and race records. |
+| `src/CarSelection.cpp` | Displays and confirms car choices. |
+| `src/Car.cpp` | Loads cars and handles movement, track limits, and lives. |
+| `src/Game.cpp` | Runs the race, tracks checkpoints and laps, and shows the result. |
+| `include/Scores.h` | Reads and writes race times. |
+| `assets/` | Holds the track, cars, fonts, menu images, and music. |
+| `data/scores.txt` | Stores race times. |
