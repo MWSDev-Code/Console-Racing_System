@@ -5,20 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(SFML 3 COMPONENTS Graphics Audio QUIET)
-if(NOT SFML_FOUND)
-  include(FetchContent)
-  set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
-  set(SFML_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-  set(SFML_BUILD_TEST_SUITE OFF CACHE BOOL "" FORCE)
-  FetchContent_Declare(
-    SFML
-    GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG 3.0.2
-    GIT_SHALLOW TRUE
-  )
-  FetchContent_MakeAvailable(SFML)
-endif()
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Audio)
 
 add_executable(game
   src/main.cpp

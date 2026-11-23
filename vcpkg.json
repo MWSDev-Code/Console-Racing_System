@@ -1,0 +1,15 @@
+{
+  "name": "console-racing-system",
+  "version-string": "1.0.0",
+  "builtin-baseline": "277978ad2eddc3b05ecf288dcd33071968cd2f79",
+  "dependencies": [
+    {
+      "name": "sfml",
+      "default-features": false,
+      "features": [
+        "audio",
+        "graphics"
+      ]
+    }
+  ]
+}
