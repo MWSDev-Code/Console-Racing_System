@@ -2,7 +2,6 @@
 
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
-
 #include <sstream>
 
 #include "Game.h"
