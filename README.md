@@ -2,9 +2,20 @@
 
 A local two-player 2D racing game written in C++17 with SFML 3. Two cars start side by side. Each driver must pass four checkpoints in order and cross the finish line to complete a lap. The first driver to complete three laps wins.
 
+## Get the project
+
+Extract `Group 3.zip` and open the `Group 3` folder, or clone the [GitHub repository](https://github.com/MWSDev-Code/Console-Racing_System) with Git.
+
+```sh
+git clone https://github.com/MWSDev-Code/Console-Racing_System.git
+cd Console-Racing_System
+```
+
 ## Build and run on macOS
 
 The project uses Clang and the SFML headers and libraries installed through Homebrew. If these tools are missing, install the Xcode Command Line Tools with `xcode-select --install` and install SFML with `brew install sfml`.
+
+Double-click [run-macos.command](run-macos.command), or run `bash run-macos.command` from the project folder. It builds `build/game` and launches the game.
 
 Open a terminal in the project folder, where `src/`, `include/`, `assets/`, and `data/` are located. Run these commands.
 
@@ -19,6 +30,24 @@ clang++ -std=c++17 -Iinclude -I"$SFML_PREFIX/include" src/*.cpp \
 The compiler builds the C++ files in `src/`, finds the project headers in `include/`, links the SFML libraries, and writes the executable to `game`. Launch it from the project folder so it can find the assets and score file.
 
 In VS Code on Apple Silicon, run **Build Turbo Track** from **Terminal → Run Build Task**. With the Microsoft C/C++ extension installed, select **Debug Turbo Track** in **Run and Debug** and press **F5**. The included VS Code task uses the Apple Silicon Homebrew path `/opt/homebrew/opt/sfml`.
+
+## Build and run on Windows
+
+1. Install [MSYS2](https://www.msys2.org/) and open its **UCRT64** terminal.
+2. Run `pacman -Syu` to update MSYS2. If prompted, close the terminal, reopen **UCRT64**, and run `pacman -Syu` again. Install the compiler and [SFML package](https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-sfml).
+
+   ```sh
+   pacman -S --needed mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-sfml
+   ```
+
+3. Double-click [run-windows.bat](run-windows.bat) in the extracted or cloned project folder. It builds `build\game.exe` and launches it with the SFML DLLs on its path.
+
+For an MSYS2 installation outside `C:\msys64`, open Command Prompt in the project folder and set the actual installation path before running the launcher.
+
+```bat
+set "MSYS2_ROOT=D:\msys64"
+run-windows.bat
+```
 
 ## How to play
 

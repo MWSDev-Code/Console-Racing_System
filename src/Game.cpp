@@ -74,7 +74,7 @@ int Game::run(int selectedCar) {
        {checkpointAreas[2].position, checkpointAreas[2].size},
        {checkpointAreas[3].position, checkpointAreas[3].size}}};
 
-  constexpr unsigned int totalLaps = 3;
+  const unsigned int totalLaps = 3;
 
   struct PlayerProgress {
     std::size_t nextCheckpoint = 0;

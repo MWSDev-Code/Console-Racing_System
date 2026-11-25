@@ -1,0 +1,19 @@
+Console Racing System
+C++ SFML Semester Project
+Group 3
+
+Group Members
+Muhammad Suleman Waseem  26L-0751
+Aima Younas              26L-0761
+Maha Azeem               26L-0759
+
+GitHub Repository
+https://github.com/MWSDev-Code/Console-Racing_System
+
+Project Archive
+Group 3.zip
+
+Build and Run
+See README.md for dependencies, launch instructions, and game controls.
+macOS launcher    run-macos.command
+Windows launcher  run-windows.bat
