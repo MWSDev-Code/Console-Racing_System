@@ -161,6 +161,10 @@ void Car::setPosition(sf::Vector2f position) {
   carsprite.setPosition(position);
 }
 
+void Car::setRotation(sf::Angle rotation) {
+  carsprite.setRotation(rotation);
+}
+
 sf::Vector2f Car::getPosition() const { return carsprite.getPosition(); }
 
 const sf::Sprite& Car::getSprite() const { return carsprite; }

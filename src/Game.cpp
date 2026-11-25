@@ -295,8 +295,22 @@ int Game::run(int selectedCar) {
 
       timerText.setString(timerStream.str());
 
+      const auto oldPosition1 = player1.getPosition();
+      const auto oldPosition2 = player2.getPosition();
+      const auto oldRotation1 = player1.getSprite().getRotation();
+      const auto oldRotation2 = player2.getSprite().getRotation();
+
       player1.update(deltaTime, player1Controls);
       player2.update(deltaTime, player2Controls);
+
+      const auto box1 = player1.getSprite().getGlobalBounds();
+      const auto box2 = player2.getSprite().getGlobalBounds();
+      if (box1.findIntersection(box2).has_value()) {
+        player1.setPosition(oldPosition1);
+        player1.setRotation(oldRotation1);
+        player2.setPosition(oldPosition2);
+        player2.setRotation(oldRotation2);
+      }
 
       updateProgress(player1, progress1, 1);
       if (!raceFinished) {
