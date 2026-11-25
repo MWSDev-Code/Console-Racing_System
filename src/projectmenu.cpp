@@ -110,14 +110,20 @@ int runMenu() {
           showingRecords = false;
         }
       } else if (startBox.getGlobalBounds().contains(mousePosition)) {
+        if (soundOn) {
+          music.pause();
+        }
         menu.setVisible(false);
         Game game;
-        const int result = game.run(selectedCar);
+        const int result = game.run(selectedCar, soundOn);
         if (result != 0) {
           return result;
         }
         menu.setVisible(true);
         menu.requestFocus();
+        if (soundOn) {
+          music.play();
+        }
       } else if (carBox.getGlobalBounds().contains(mousePosition)) {
         menu.setVisible(false);
         const int choice = selectCar(selectedCar);

@@ -115,6 +115,7 @@ void Car::update(float deltaTime, const CarControls& controls) {
   float moveX = std::cos(angle) * speed * deltaTime;  //cos makes the car move horizontal
   float moveY = std::sin(angle) * speed * deltaTime;  //sin makes the car vertical
 
+  const auto previousPosition = carsprite.getPosition();
   carsprite.move({moveX, moveY});  //It moves acccording to the given coordinates.
 
   sf::FloatRect bounds = carsprite.getGlobalBounds();  //Bounds get the cars bounding rectangle
@@ -138,31 +139,31 @@ void Car::update(float deltaTime, const CarControls& controls) {
 
     carsprite.move({0.0f, -extra});
   }
-  sf::Vector2f carPosition = carsprite.getPosition();  //This gets the position of the car sprite(we set the origin to the center of the car)
-
-  sf::Vector2u maskSize = Track_Mask.getSize();   //This gets the width and height of the track_Mask
-
-  unsigned int maskX =  //This part actually calculates the coordinates of the pixel IF SIZE OF THE TRACK AND MASK DIFFER
-      static_cast<unsigned int>(carPosition.x * maskSize.x / 1280.0f);
-
-  unsigned int maskY =
-      static_cast<unsigned int>(carPosition.y * maskSize.y / 720.0f);
-
-  if (maskX < maskSize.x && maskY < maskSize.y) {   //A check to see if the pixel exists in the size of the track mask
-    sf::Color pixel = Track_Mask.getPixel({maskX, maskY});  //This gets the color of the pixel.
-
-    if (pixel.r < 128) {    //For black, red is 0, so the condition becomes true and the car slows down.
-      speed = std::min(speed, 40.0f);
-    }
+  const auto trackPixel = trackPixelAtCarOrigin();
+  if (trackPixel == sf::Color::Blue) {
+    carsprite.setPosition(previousPosition);
   }
+  if (trackPixel.r < 128) {
+    speed = std::min(speed, 40.0f);
+  }
+}
+
+sf::Color Car::trackPixelAtCarOrigin() const {
+  const auto position = carsprite.getPosition();
+  const auto maskSize = Track_Mask.getSize();
+  if (position.x < 0.f || position.x >= 1280.f ||
+      position.y < 0.f || position.y >= 720.f ||
+      maskSize.x == 0 || maskSize.y == 0) {
+    return sf::Color::White;
+  }
+
+  const auto x = static_cast<unsigned int>(position.x * maskSize.x / 1280.f);
+  const auto y = static_cast<unsigned int>(position.y * maskSize.y / 720.f);
+  return Track_Mask.getPixel({x, y});
 }
 
 void Car::setPosition(sf::Vector2f position) {
   carsprite.setPosition(position);
-}
-
-void Car::setRotation(sf::Angle rotation) {
-  carsprite.setRotation(rotation);
 }
 
 sf::Vector2f Car::getPosition() const { return carsprite.getPosition(); }
